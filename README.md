@@ -73,3 +73,12 @@ use `themer render` to update your configuration:
 Deleting generated themes is possible using `themer delete`:
 
     $ themer delete sometheme
+
+
+Screenshots
+-----------
+
+![](http://media.charlesleifer.com/blog/photos/candybean.png)
+![](http://media.charlesleifer.com/blog/photos/bloom.png)
+![](http://media.charlesleifer.com/blog/photos/waves.png)
+![](http://media.charlesleifer.com/blog/photos/waves2.png)
