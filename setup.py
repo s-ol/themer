@@ -15,7 +15,7 @@ except IOError:
 setup(
     name='Themer',
     version='0.1',
-    description='Themer creates and manages Colorschemes',
+    description='Themer is a colorscheme generator and manager for your desktop.',
     long_description=README,
     author='Charles Leifer, Sol Bekic',
     author_email='s0lll0s@blinkenshell.org',
