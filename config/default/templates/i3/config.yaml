@@ -1,0 +1,13 @@
+variables:
+  primary: magenta
+  secondary: green
+  tertiary: red
+  special: yellow
+  transparency: 70
+  fontName: terminus
+  fontSize: 10
+  font: "-*-terminus-*-*-*-*-12-*-*-*-*-*-*-*"
+files:
+  Xdefaults.tpl: Xdefaults
+  index.tpl: index.html
+  i3.tpl: i3.conf
