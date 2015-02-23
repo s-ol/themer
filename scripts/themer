@@ -63,7 +63,7 @@ def dict_update(parent, child):
 
 def read_config(config_file):
     """Read a YAML config file."""
-    logger.debug('Reading config file: %s' % config_file)
+    logger.debug('Reading config file: {}'.format(config_file))
     config_dir = os.path.dirname(config_file)
     base_config = {}
     with open(config_file) as fh:
@@ -78,20 +78,20 @@ def read_config(config_file):
 def render_templates(template_dir, files, context):
     """Render templates from `template_dir`."""
     env = Environment(loader=FileSystemLoader(template_dir))
-    logger.debug('Jinja environment configured for: %s' % template_dir)
+    logger.debug('Jinja environment configured for: {}'.format(template_dir))
 
     for src, dest in files.items():
         dir_name = os.path.dirname(dest)
         if not os.path.exists(dir_name):
-            logger.debug('Creating directory %s' % dir_name)
+            logger.debug('Creating directory {}'.format(dir_name))
             os.makedirs(dir_name)
         if src.endswith(('tpl', 'conf')):
-            logger.info('Writing %s -> %s' % (src, dest))
+            logger.info('Writing {} -> {}'.format(src, dest))
             template = env.get_template(src)
             with open(dest, 'w') as fh:
                 fh.write(template.render(**context))
         else:
-            logger.info('Copying %s -> %s' % (src, dest))
+            logger.info('Copying {} -> {}'.format(src, dest))
             shutil.copy(os.path.join(template_dir, src), dest)
 
 def munge_context(variables, colors):
@@ -123,16 +123,16 @@ def wallfix(directory, colors):
         logger.info('No wallpaper found, generating new one.')
         wallpaper = create_wallpaper(colors, directory)
 
-    logger.info('Setting %s as wallpaper' % wallpaper)
+    logger.info('Setting {} as wallpaper'.format(wallpaper))
     path = os.path.join(directory, wallpaper)
-    os.system('wallfix %s' % path)
+    os.system('wallfix {}'.format(path))
 
 def hex_to_rgb(h):
     h = h.lstrip('#')
     return tuple(map(lambda n: int(n, 16), [h[i:i+2] for i in range(0, 6, 2)]))
 
 def rgb_to_hex(rgb):
-    return '#%s' % ''.join(('%02x' % p for p in rgb))
+    return '#{}'.format(''.join(('%02x' % p for p in rgb)))
 
 def create_wallpaper(colors, template_dir, w=1920, h=1200, filename='wallpaper.png'):
     rectangles = (
@@ -162,7 +162,7 @@ Cluster = namedtuple('Cluster', ('points', 'center'))
 
 def symlink(theme_name):
     """Set up a symlink for the new theme."""
-    logger.info('Setting %s as current theme' % theme_name)
+    logger.info('Setting {} as current theme'.format(theme_name))
     current = os.path.join(THEMER_ROOT, 'current')
     if os.path.islink(current):
         os.unlink(current)
@@ -180,7 +180,7 @@ def activate(theme_name):
     os.system('i3-msg -q restart')
 
 def fetch_vim(color_file):
-    return urllib2.urlopen('http://sweyla.com/themes/vim/sweyla%s.vim' % color_file).read()
+    return urllib2.urlopen('http://sweyla.com/themes/vim/sweyla{}.vim'.format(color_file)).read()
 
 def generate(color_source, config_file, template_dir, theme_name):
     """Generate a new theme."""
@@ -205,7 +205,7 @@ def generate(color_source, config_file, template_dir, theme_name):
         # Add wallpaper to the list of files to copy.
         files[wallpaper] = os.path.join(
             destination,
-            'wallpaper%s' % os.path.splitext(wallpaper)[1])
+            'wallpaper{}'.format(os.path.splitext(wallpaper)[1]))
 
     render_templates(template_dir, files, context)
 
@@ -215,19 +215,23 @@ def generate(color_source, config_file, template_dir, theme_name):
 
     # Save the vim color scheme.
     if vim:
-        logger.info('Saving vim colorscheme %s.vim' % theme_name)
-        filename = os.path.join(os.environ['HOME'], '.vim/colors/%s.vim' % theme_name)
+        logger.info('Saving vim colorscheme {}.vim'.format(theme_name))
+        filename = os.path.join(os.environ['HOME'], '.vim/colors/{}.vim'.format(theme_name))
         with open(filename, 'w') as fh:
             fh.write(vim)
 
 def render(config_file, template_dir, theme_name):
+    """Render an existing theme."""
     src = os.path.join(THEMER_ROOT, theme_name)
     config = read_config(config_file)
     files = {
         key: os.path.join(src, value)
         for key, value in config['files'].items()}
-    context = None
-    with open(os.path.join(src, 'colors.yaml'), 'r') as fh:
+
+    colors = os.path.join(src, 'colors.yaml')
+    if not os.path.isfile(colors):
+        panic('Unkown theme "{}"'.format(theme_name))
+    with open(colors, 'r') as fh:
         context = yaml.load(fh)
         render_templates(template_dir, files, context)
 
@@ -275,8 +279,8 @@ class ColorParser(object):
 
         if len(self.colors) < 16:
             logger.warning(
-                'Error, only %s colors were read when loading color file "%s"'
-                % (len(self.colors), self.color_file))
+                'Error, only {} colors were read when loading color file "{}"'
+                .format(len(self.colors), self.color_file))
         return self.colors
 
 
@@ -303,7 +307,7 @@ class SweylaColorParser(ColorParser):
     def read(self):
         mapping = self.mapping()
         resp = urllib2.urlopen(
-            'http://sweyla.com/themes/textfile/sweyla%s.txt' % self.color_file)
+            'http://sweyla.com/themes/textfile/sweyla{}.txt'.format(self.color_file))
         contents = resp.read()
         for line in contents.splitlines():
             key, value = line.split(':\t')
@@ -447,7 +451,7 @@ class IconUpdater(object):
         # currently.
         old_primary = self.extract_color_svg(self.primary_icon())
         old_secondary = self.extract_color_svg(self.secondary_icon())
-        logger.debug('Old icon colors: %s, %s' % (old_primary, old_secondary))
+        logger.debug('Old icon colors: {}, {}'.format(old_primary, old_secondary))
 
         # Walk the icons, updating the colors in each svg file.
         file_count = 0
@@ -488,7 +492,7 @@ if __name__ == '__main__':
 
     action = args[0]
     if action not in ('list', 'activate', 'generate', 'render', 'current', 'delete'):
-        panic('Unknown action "%s"' % action)
+        panic('Unknown action "{}"'.format(action))
 
     if action not in ('list', 'current') and len(args) == 1:
         panic('Missing required argument "theme_name"')
@@ -521,13 +525,13 @@ if __name__ == '__main__':
         activate(theme_name)
     elif action == 'delete':
         shutil.rmtree(os.path.join(THEMER_ROOT, theme_name))
-        logger.info('Removed %s' % theme_name)
+        logger.info('Removed {}'.format(theme_name))
     else:
         # Find the appropriate yaml config file and load it.
         template_dir = os.path.join(TEMPLATE_ROOT, options.template_dir)
         config_file = os.path.join(template_dir, options.config_file)
         if not os.path.exists(config_file):
-            panic('Unable to find file "%s"' % config_file)
+            panic('Unable to find file "{}"'.format(config_file))
 
         if action == 'generate':
             if not len(args) == 3:
@@ -537,7 +541,7 @@ if __name__ == '__main__':
             generate(color_file, config_file, template_dir, theme_name)
         else:
             if not len(args) == 2:
-                panic('Too many arguments')
+                panic('Missing required argument "theme_name"')
             else:
                 render(config_file, template_dir, theme_name)
 
