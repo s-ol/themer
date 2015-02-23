@@ -220,6 +220,16 @@ def generate(color_source, config_file, template_dir, theme_name):
         with open(filename, 'w') as fh:
             fh.write(vim)
 
+def render(config_file, template_dir, theme_name):
+    src = os.path.join(THEMER_ROOT, theme_name)
+    config = read_config(config_file)
+    files = {
+        key: os.path.join(src, value)
+        for key, value in config['files'].items()}
+    context = None
+    with open(os.path.join(src, 'colors.yaml'), 'r') as fh:
+        context = yaml.load(fh)
+        render_templates(template_dir, files, context)
 
 class ColorParser(object):
     # Colors look something like "*color0:  #FF0d3c\n"
@@ -457,7 +467,7 @@ class IconUpdater(object):
 
 
 def get_parser():
-    parser = optparse.OptionParser(usage='usage: %prog [options] [list|activate|generate|current|delete] theme_name [color file]')
+    parser = optparse.OptionParser(usage='usage: %prog [options] [list|activate|render|generate|current|delete] theme_name [color file]')
     parser.add_option('-t', '--template', dest='template_dir', default='i3')
     parser.add_option('-c', '--config', dest='config_file', default='config.yaml')
     parser.add_option('-a', '--activate', dest='activate', action='store_true')
@@ -477,7 +487,7 @@ if __name__ == '__main__':
         panic(parser.get_usage())
 
     action = args[0]
-    if action not in ('list', 'activate', 'generate', 'current', 'delete'):
+    if action not in ('list', 'activate', 'generate', 'render', 'current', 'delete'):
         panic('Unknown action "%s"' % action)
 
     if action not in ('list', 'current') and len(args) == 1:
@@ -519,12 +529,17 @@ if __name__ == '__main__':
         if not os.path.exists(config_file):
             panic('Unable to find file "%s"' % config_file)
 
-        if not len(args) == 3:
-            panic('Missing required color file')
+        if action == 'generate':
+            if not len(args) == 3:
+                panic('Missing required color file')
+            else:
+                color_file = args[2]
+            generate(color_file, config_file, template_dir, theme_name)
         else:
-            color_file = args[2]
-
-        generate(color_file, config_file, template_dir, theme_name)
+            if not len(args) == 2:
+                panic('Too many arguments')
+            else:
+                render(config_file, template_dir, theme_name)
 
         if options.activate or input('Activate now? yN ') == 'y':
             activate(theme_name)
