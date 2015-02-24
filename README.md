@@ -6,16 +6,24 @@ Themer
 Installation
 ------------
 
+### AUR (Arch)
+
+Install [python-themer-git](https://aur.archlinux.org/packages/python-themer-git/) with the AUR manager of your choice:
+
+    $ yaourt -S python-themer-git
+
+### Manual Installation
+
 First, check out the git repository:
 
-    git clone https://github.com/S0lll0s/themer.git
+    $ git clone https://github.com/S0lll0s/themer.git
 
 Install with `python setup.py install`
 
-    cd themer
-    sudo python setup.py install
+    $ cd themer
+    $ sudo python setup.py install
 
-I am working on getting an AUR package for this. It might also end up in PyPI in the future.
+Ihis package might also end up in PyPI in the future.
 
 Configuration
 -------------
