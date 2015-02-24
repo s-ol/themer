@@ -8,15 +8,6 @@ Can generate themes from:
 - Xresources-style color files
 - Sweyla's site, e.g. for http://sweyla.com/themes/seed/693812/ -> 693812
 - Images, in which case it will use k-means to get colors
-
-Requires:
-
-- ~/.config/themer/templates/ directory w/one valid set of templates
-
-Assumes:
-
-- you're using "any color you like" icon set
-- probably a lot of other things
 """
 
 from collections import namedtuple
@@ -32,6 +23,7 @@ import shutil
 import sys
 import urllib
 import yaml
+import kmeans
 
 from jinja2 import Environment, FileSystemLoader
 try:
@@ -50,6 +42,9 @@ DEFAULT_CONTEXT_CONFIG = {
 CONFIG_DIR = os.getenv('XDG_CONFIG_HOME', os.path.join(os.getenv('HOME'), '.config'))
 THEMER_ROOT = os.path.join(CONFIG_DIR, 'themer')
 TEMPLATE_ROOT = os.path.join(THEMER_ROOT, 'templates')
+
+if not os.path.isdir(THEMER_ROOT):
+    os.system("cp -r /usr/share/themer/default {}".format(THEMER_ROOT))
 
 def dict_update(parent, child):
     """Recursively update parent dict with child dict."""
@@ -156,9 +151,6 @@ def create_wallpaper(colors, template_dir, w=1920, h=1200, filename='wallpaper.p
         draw.rectangle([(x1, y1), (x2, y2)], fill=hex_to_rgb(colors[color]))
     image.save(os.path.join(template_dir, filename), 'PNG')
     return filename
-
-Point = namedtuple('Point', ('coords', 'ct'))
-Cluster = namedtuple('Cluster', ('points', 'center'))
 
 def symlink(theme_name):
     """Set up a symlink for the new theme."""
@@ -330,7 +322,7 @@ class AutodetectColorParser(ColorParser):
         points = []
         w, h = img.size
         for count, color in img.getcolors(w * h):
-            points.append(Point(color, count))
+            points.append((color, count))
         return points
 
     def get_dominant_colors(self):
@@ -338,47 +330,9 @@ class AutodetectColorParser(ColorParser):
         img.thumbnail((300, 300))  # Resize to speed up python loop.
         width, height = img.size
         points = self._get_points_from_image(img)
-        clusters = self.kmeans(points, self.k, 1)
-        rgbs = [map(int, c.center.coords) for c in clusters]
+        rgbs = kmeans.kmeans(points, self.k)
+        #rgbs = [map(int, c.center.coords) for c in clusters]
         return map(rgb_to_hex, rgbs)
-
-    def _euclidean_dist(self, p1, p2):
-        return math.sqrt(
-            sum((p1.coords[i] - p2.coords[i]) ** 2 for i in range(3)))
-
-    def _calculate_center(self, points):
-        vals = [0.0 for i in range(3)]
-        plen = 0
-        for p in points:
-            plen += p.ct
-            for i in range(3):
-                vals[i] += (p.coords[i] * p.ct)
-        return Point([(v / plen) for v in vals], 1)
-
-    def kmeans(self, points, k, min_diff):
-        clusters = [Cluster([p], p) for p in random.sample(points, k)]
-        logger.info('Calculating %d dominant colors.' % k)
-        while True:
-            plists = [[] for i in range(k)]
-            for p in points:
-                smallest_distance = float('Inf')
-                for i in range(k):
-                    distance = self._euclidean_dist(p, clusters[i].center)
-                    if distance < smallest_distance:
-                        smallest_distance = distance
-                        idx = i
-                plists[idx].append(p)
-            diff = 0
-            for i in range(k):
-                old = clusters[i]
-                center = self._calculate_center(plists[i])
-                new = Cluster(plists[i], center)
-                clusters[i] = new
-                diff = max(diff, self._euclidean_dist(old.center, new.center))
-            logger.debug('Diff: %d' % diff)
-            if diff <= min_diff:
-                break
-        return clusters
 
     def normalize(self, hexv, minv=128, maxv=256):
         r, g, b = hex_to_rgb(hexv)
@@ -539,7 +493,7 @@ if __name__ == '__main__':
             else:
                 color_file = args[2]
             generate(color_file, config_file, template_dir, theme_name)
-        else:
+        elif action == 'render':
             if not len(args) == 2:
                 panic('Missing required argument "theme_name"')
             else:
