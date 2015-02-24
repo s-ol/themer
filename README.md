@@ -23,7 +23,7 @@ Install with `python setup.py install`
     $ cd themer
     $ sudo python setup.py install
 
-I am working on getting an AUR package for this. It might also end up in PyPI in the future.
+Ihis package might also end up in PyPI in the future.
 
 Configuration
 -------------
