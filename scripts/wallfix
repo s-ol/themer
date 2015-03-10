@@ -1,13 +1,13 @@
 #!/usr/bin/env python
- 
+
 import os
 import re
 import sys
- 
+
 from PIL import Image
- 
+
 HOME = os.environ['HOME']
- 
+
 try:
     screen_info = os.popen('xrandr').readlines()
     resolution_re = re.compile('\s+(\d+)x(\d+)\s+\d+\.\d+\*')
@@ -20,15 +20,15 @@ except:
     WIDTH = 1440
     HEIGHT = 900
 RATIO = float(WIDTH) / HEIGHT
- 
+
 def local_file(filename):
     return os.path.join(HOME, filename)
- 
+
 def make_wallpapers(original):
     im = Image.open(original)
     width, height = im.size
     ratio = float(width) / height
- 
+
     if ratio > RATIO:
         # resize to match height, then crop horizontally from center
         new_width = int(HEIGHT * ratio)
@@ -44,24 +44,24 @@ def make_wallpapers(original):
     else:
         im.thumbnail((WIDTH, HEIGHT), Image.ANTIALIAS)
         cropped = im
- 
+
     path, ext = os.path.splitext(original)
     dest_jpg = local_file('.wallpaper.jpg')
     dest_png = local_file('.wallpaper.png')
- 
+
     cropped.save(dest_jpg, 'JPEG', quality=100)
     cropped.save(dest_png, 'PNG')
- 
+
 def panic(msg):
     print(msg, file=sys.stderr)
     sys.exit(1)
- 
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         panic('Error, missing required image file')
- 
+
     filename = sys.argv[-1]
     if not os.path.exists(filename):
         panic('Error, file %s not found' % filename)
- 
+
     make_wallpapers(filename)
