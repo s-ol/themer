@@ -10,83 +10,37 @@ Can generate themes from:
 - Images, in which case it will use k-means to get colors
 """
 
-import colorsys
-import itertools
 import logging
-import math
 import optparse
 import os
 import random
 import re
 import shutil
+import imp
 import sys
-import urllib
 import yaml
+
+from themer import ColorParser, CachedColorParser, SweylaColorParser, KmeansColorParser
 
 from jinja2 import Environment, FileSystemLoader
 try:
-    import Image, ImageDraw
+    import Image
 except ImportError:
-    from PIL import Image, ImageDraw
-
-try:
-    import kmeans
-except ImportError:
-    global kmeans
-
-    class PyKmeans:
-        def ec_dist(self, a, b):
-            return math.sqrt(
-                sum((a[0][i] - b[0][i]) ** 2 for i in range(3)))
-
-        def c_center(self, points):
-            vals = [0.0 for i in range(3)]
-            plen = 0
-            for p in points:
-                plen += p[1]
-                for i in range(3):
-                    vals[i] += p[0][i] * p[1]
-            return ([(v/plen) for v in vals], 1)
-
-        def kmeans(self, points, k, min_diff=1):
-            print("""Falling back to python kmeans implementation.
-            Consider installing 'kmeans' from PyPI for much faster image sampling""")
-            clusters = [([p], p) for p in random.sample(points, k)]
-            while True:
-                plists = [[] for i in range(k)]
-                for p in points:
-                    smallest_distance = float('Inf')
-                    for i in range(k):
-                        distance = self.ec_dist(p, clusters[i][1])
-                        if distance < smallest_distance:
-                            smallest_distance = distance
-                            idx = i
-                    plists[idx].append(p)
-                diff = 0
-                for i in range(k):
-                    old = clusters[i]
-                    center = self.c_center(plists[i])
-                    new = (plists[i], center)
-                    clusters[i] = new
-                    diff = max(diff, self.ec_dist(old[1], new[1]))
-                logger.debug('Diff: {}'.format(diff))
-                if diff <= min_diff:
-                    break
-            return [map(int, c[1][0]) for c in clusters]
-
-    kmeans = PyKmeans()
+    from PIL import Image
 
 logger = logging.getLogger(__name__)
-
+plugins = { 'activators': [], 'parsers': [] }
 
 DEFAULT_CONTEXT_CONFIG = {
     'primary': 'magenta',
     'secondary': 'green',
     'tertiary': 'blue',
 }
+
 CONFIG_DIR = os.getenv('XDG_CONFIG_HOME', os.path.join(os.getenv('HOME'), '.config'))
 THEMER_ROOT = os.path.join(CONFIG_DIR, 'themer')
 TEMPLATE_ROOT = os.path.join(THEMER_ROOT, 'templates')
+PLUGIN_DIR = os.path.join(THEMER_ROOT, 'plugins')
 
 if not os.path.isdir(THEMER_ROOT):
     os.system("cp -r /usr/share/themer/default {}".format(THEMER_ROOT))
@@ -154,89 +108,44 @@ def munge_context(variables, colors):
 
     return context
 
-def wallfix(directory, colors):
-    """Look in `directory` for file named `wallpaper.xxx` and set it."""
-    wallpaper = None
-    for filename in os.listdir(directory):
-        if filename.startswith('wallpaper'):
-            wallpaper = filename
-            break
-
-    if not wallpaper:
-        logger.info('No wallpaper found, generating new one.')
-        wallpaper = create_wallpaper(colors, directory)
-
-    logger.info('Setting {} as wallpaper'.format(wallpaper))
-    path = os.path.join(directory, wallpaper)
-    os.system('wallfix {}'.format(path))
-
 def hex_to_rgb(h):
     h = h.lstrip('#')
     return tuple(map(lambda n: int(n, 16), [h[i:i+2] for i in range(0, 6, 2)]))
 
-def rgb_to_hex(rgb):
-    return '#{}'.format(''.join(('%02x' % p for p in rgb)))
-
-def create_wallpaper(colors, template_dir, w=1920, h=1200, filename='wallpaper.png'):
-    rectangles = (
-        # x1, y1, x2, y2 -- in percents
-        ('red', [0, 30.0, 3.125, 72.5]), # LEFT
-        ('green', [50, 0, 76.5625, 12.5]), # TOP
-        ('yellow', [96.875, 30.0, 100, 72.5]), # RIGHT
-        ('magenta', [23.4375, 25.0, 50, 30.0]), # MID TOP LEFT
-        ('white', [23.4375, 30.0, 50, 72.5]), # MID LEFT
-        ('magenta', [50, 30.0, 76.5625, 72.5]), # MID RIGHT
-        ('white', [50, 72.5, 76.5625, 87.5]), # MID BOTTOM RIGHT
-    )
-    def fix_coords(coords):
-        m = [w, h, w, h]
-        return [int(c * .01 * m[i]) for i, c in enumerate(coords)]
-    background = hex_to_rgb(colors['black'])
-    image = Image.new('RGB', (w, h), background)
-    draw = ImageDraw.Draw(image)
-    for color, coords in rectangles:
-        x1, y1, x2, y2 = fix_coords(coords)
-        draw.rectangle([(x1, y1), (x2, y2)], fill=hex_to_rgb(colors[color]))
-    image.save(os.path.join(template_dir, filename), 'PNG')
-    return filename
-
-def symlink(theme_name):
+def symlink(theme_dir):
     """Set up a symlink for the new theme."""
-    logger.info('Setting {} as current theme'.format(theme_name))
     current = os.path.join(THEMER_ROOT, 'current')
     if os.path.islink(current):
         os.unlink(current)
-    os.symlink(os.path.join(THEMER_ROOT, theme_name), current)
+    os.symlink(theme_dir, current)
 
 def activate(theme_name):
     """Activate the given theme."""
-    symlink(theme_name)
-    dest = os.path.join(THEMER_ROOT, theme_name)
-    color_file = os.path.join(dest, 'colors.yaml')
-    colors = CachedColorParser(color_file).read()
-    wallfix(dest, colors)
-    #IconUpdater(colors['primary'], colors['secondary']).update_icons()
-    #os.system('xrdb -merge ~/.Xresources')
-    os.system('i3-msg -q restart')
-
-def fetch_vim(color_file):
-    return urllib2.urlopen('http://sweyla.com/themes/vim/sweyla{}.vim'.format(color_file)).read()
+    logger.info('Setting {} as current theme'.format(theme_name))
+    theme_dir = os.path.join(THEMER_ROOT, theme_name)
+    symlink(theme_dir)
+    for activator in plugins['activators']:
+        logger.debug('activating using {} (from {})'.format(activator.__name__, activator.__module__))
+        act = activator(theme_name, theme_dir, logger)
+        act.activate()
 
 def generate(color_source, config_file, template_dir, theme_name):
     """Generate a new theme."""
     destination = os.path.join(THEMER_ROOT, theme_name)
-    wallpaper = None
-    if color_source.isdigit() and not os.path.isfile(color_source):
-        colors = SweylaColorParser(color_source).read()
-        vim = fetch_vim(color_source)
-    elif color_source.lower().endswith(('.jpg', '.png', '.jpeg')):
-        colors = AutodetectColorParser(color_source).read()
-        wallpaper = color_source
-        vim = None
-    else:
-        colors = ColorParser(color_source).read()
-        vim = None
     config = read_config(config_file)
+    wallpaper = None
+
+    for (check, parser) in plugins['parsers']:
+        if hasattr(check, '__call__') and not check():
+            continue
+        if (isinstance(check, str) or isinstance(check, re._pattern_type)) and not re.search(check, color_source, re.IGNORECASE):
+            continue
+        parse = parser(color_source, config, logger)
+        colors = parse.read()
+        wallpaper = parse.wallpaper
+        logger.debug('Using {} (from {}) to parse {}'.format(parser.__name__, parser.__module__, color_source))
+        break
+
     context = munge_context(config['variables'], colors)
     files = {
         key: os.path.join(destination, value)
@@ -253,13 +162,6 @@ def generate(color_source, config_file, template_dir, theme_name):
     with open(os.path.join(destination, 'colors.yaml'), 'w') as fh:
         yaml.dump(context, fh, default_flow_style=False)
 
-    # Save the vim color scheme.
-    if vim:
-        logger.info('Saving vim colorscheme {}.vim'.format(theme_name))
-        filename = os.path.join(os.environ['HOME'], '.vim/colors/{}.vim'.format(theme_name))
-        with open(filename, 'w') as fh:
-            fh.write(vim)
-
 def render(config_file, template_dir, theme_name):
     """Render an existing theme."""
     src = os.path.join(THEMER_ROOT, theme_name)
@@ -275,202 +177,26 @@ def render(config_file, template_dir, theme_name):
         context = yaml.load(fh)
         render_templates(template_dir, files, context)
 
-class ColorParser(object):
-    # Colors look something like "*color0:  #FF0d3c\n"
-    color_re = re.compile('.*?(color[^:]+|background|foreground):\s*(#[\da-z]{6})')
+def load_plugins():
+    found = os.listdir(PLUGIN_DIR)
+    for name in found:
+        if not name.endswith('.py'):
+            continue
+        name = name[:-3]
+        mod = imp.load_module(name, *imp.find_module(name, [PLUGIN_DIR]))
+        if not mod.exports:
+            continue
 
-    def __init__(self, color_file):
-        self.color_file = color_file
-        self.colors = {}
+        if 'activators' in mod.exports:
+            plugins['activators'] += mod.exports['activators']
+        if 'parsers' in mod.exports:
+            plugins['parsers'] += mod.exports['parsers']
+        logger.info('Loaded plugin "{}"'.format(name))
 
-    def mapping(self):
-        return {
-            'background': 'background',
-            'foreground': 'foreground',
-            'color0': 'black',
-            'color8': 'alt_black',
-            'color1': 'red',
-            'color9': 'alt_red',
-            'color2': 'green',
-            'color10': 'alt_green',
-            'color3': 'yellow',
-            'color11': 'alt_yellow',
-            'color4': 'blue',
-            'color12': 'alt_blue',
-            'color5': 'magenta',
-            'color13': 'alt_magenta',
-            'color6': 'cyan',
-            'color14': 'alt_cyan',
-            'color7': 'white',
-            'color15': 'alt_white',
-            'colorul': 'underline'}
-
-    def read(self):
-        color_mapping = self.mapping()
-
-        with open(self.color_file) as fh:
-            for line in fh.readlines():
-                if line.startswith('!'):
-                    continue
-                match_obj = self.color_re.search(line.lower())
-                if match_obj:
-                    var, color = match_obj.groups()
-                    self.colors[color_mapping[var]] = color
-
-        if len(self.colors) < 16:
-            logger.warning(
-                'Error, only {} colors were read when loading color file "{}"'
-                .format(len(self.colors), self.color_file))
-        return self.colors
-
-
-class SweylaColorParser(ColorParser):
-    def mapping(self):
-        return {
-            'bg': ['background', 'black', 'alt_black'],
-            'fg': ['foreground', 'white'],
-            'nf': 'red',  # name of function / method
-            'nd': 'alt_red',  # decorator
-            'nc': 'green',  # name of class
-            'nt': 'alt_green', # ???
-            'nb': 'yellow',  # e.g., "object" or "open"
-            'c': 'alt_yellow',  # comments
-            's': 'blue',  # string
-            'mi': 'alt_blue',  # e.g., a number
-            'k': 'magenta',  # e.g., "class"
-            'o': 'alt_magenta', # operator, e.g "="
-            'bp': 'cyan',  # e.g., "self" keyword
-            'si': 'alt_cyan', # e.g. "%d"
-            'se': 'alt_white',
-            'support_function': 'underline'}
-
-    def read(self):
-        mapping = self.mapping()
-        resp = urllib2.urlopen(
-            'http://sweyla.com/themes/textfile/sweyla{}.txt'.format(self.color_file))
-        contents = resp.read()
-        for line in contents.splitlines():
-            key, value = line.split(':\t')
-            if key in mapping:
-                colors = mapping[key]
-                if not isinstance(colors, list):
-                    colors = [colors]
-                for color in colors:
-                    self.colors[color] = value
-        return self.colors
-
-class AutodetectColorParser(ColorParser):
-    def __init__(self, wallpaper_file, k=16, bg='#0e0e0e', fg='#ffffff'):
-        self.wallpaper_file = wallpaper_file
-        self.k = k
-        self.bg = bg
-        self.fg = fg
-
-    def _get_points_from_image(self, img):
-        points = []
-        w, h = img.size
-        for count, color in img.getcolors(w * h):
-            points.append((color, count))
-        return points
-
-    def get_dominant_colors(self):
-        img = Image.open(self.wallpaper_file)
-        img.thumbnail((300, 300))  # Resize to speed up python loop.
-        width, height = img.size
-        points = self._get_points_from_image(img)
-        rgbs = kmeans.kmeans(points, self.k)
-        #rgbs = [map(int, c.center.coords) for c in clusters]
-        return map(rgb_to_hex, rgbs)
-
-    def normalize(self, hexv, minv=128, maxv=256):
-        r, g, b = hex_to_rgb(hexv)
-        h, s, v = colorsys.rgb_to_hsv(r / 256.0, g / 256.0, b / 256.0)
-        minv = minv / 256.0
-        maxv = maxv / 256.0
-        if v < minv:
-            v = minv
-        if v > maxv:
-            v = maxv
-        rgb = colorsys.hsv_to_rgb(h, s, v)
-        return rgb_to_hex(map(lambda i: i * 256, rgb))
-
-    def read(self):
-        colors = self.get_dominant_colors()
-        color_dict = {
-            'background': self.bg,
-            'foreground': self.fg}
-        for i, color in enumerate(itertools.cycle(colors)):
-            if i == 0:
-                color = self.normalize(color, minv=0, maxv=32)
-            elif i == 8:
-                color = self.normalize(color, minv=128, maxv=192)
-            elif i < 8:
-                color = self.normalize(color, minv=160, maxv=224)
-            else:
-                color = self.normalize(color, minv=200, maxv=256)
-            color_dict['color%d' % i] = color
-            if i == 15:
-                break
-        mapping = self.mapping()
-        translated = {}
-        for k, v in color_dict.items():
-            translated[mapping[k]] = v
-        logger.debug(translated)
-        return translated
-
-class CachedColorParser(ColorParser):
-    def read(self):
-        with open(self.color_file) as fh:
-            self.colors = yaml.load(fh)
-        return self.colors
-
-
-class IconUpdater(object):
-    def __init__(self, primary_color, secondary_color):
-        self.primary_color = primary_color
-        self.secondary_color = secondary_color
-
-    def icon_path(self):
-        return os.path.join(os.environ['HOME'], '.icons/acyl')
-
-    def primary_icon(self):
-        return os.path.join(self.icon_path(), 'scalable/places/desktop.svg')
-
-    def secondary_icon(self):
-        return os.path.join(self.icon_path(), 'scalable/actions/add.svg')
-
-    def extract_color_svg(self, filename):
-        regex = re.compile('stop-color:(#[\da-zA-Z]{6})')
-        with open(filename, 'r') as fh:
-            for line in fh.readlines():
-                match_obj = regex.search(line)
-                if match_obj:
-                    return match_obj.groups()[0]
-        raise ValueError('Unable to determine icon color.')
-
-    def update_icons(self):
-        # Introspect a couple icon files to determine what colors are being used
-        # currently.
-        old_primary = self.extract_color_svg(self.primary_icon())
-        old_secondary = self.extract_color_svg(self.secondary_icon())
-        logger.debug('Old icon colors: {}, {}'.format(old_primary, old_secondary))
-
-        # Walk the icons, updating the colors in each svg file.
-        file_count = 0
-        for root, dirs, filenames in os.walk(self.icon_path()):
-            for filename in filenames:
-                if not filename.endswith('.svg'):
-                    continue
-                path = os.path.join(root, filename)
-                with open(path, 'r+') as fh:
-                    contents = fh.read()
-                    contents = contents.replace(old_primary, self.primary_color)
-                    contents = contents.replace(old_secondary, self.secondary_color)
-                    fh.seek(0)
-                    fh.write(contents)
-                    file_count += 1
-        logger.info('Checked %d icon files' % file_count)
-
+    plugins['parsers'].append(('(sweyla)?[0-9]+', SweylaColorParser))
+    plugins['parsers'].append(('\.(jpg|png|jpeg)$', KmeansColorParser))
+    plugins['parsers'].append(('(.*)', ColorParser))
+    plugins['parsers'].append(('^colors\.yaml$', CachedColorParser))
 
 def get_parser():
     parser = optparse.OptionParser(usage='usage: %prog [options] [list|activate|render|generate|current|delete] theme_name [color file]')
@@ -495,6 +221,8 @@ if __name__ == '__main__':
     action = args[0]
     if action not in ('list', 'activate', 'generate', 'render', 'current', 'delete'):
         panic('Unknown action "{}"'.format(action))
+
+    load_plugins()
 
     if action not in ('list', 'current') and len(args) == 1:
         panic('Missing required argument "theme_name"')

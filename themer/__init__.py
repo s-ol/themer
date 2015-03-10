@@ -1,0 +1,233 @@
+import os
+import re
+import math
+import yaml
+import urllib.request
+
+class ThemeActivator(object):
+    def __init__(self, theme_name, theme_dir, logger):
+        self.theme_name = theme_name
+        self.theme_dir  = theme_dir
+        self.logger     = logger
+        self.colors     = CachedColorParser(os.path.join(self.theme_dir, 'colors.yaml'), None, logger).read()
+
+    def activate(self):
+        pass
+
+class ColorParser(object):
+    # Colors look something like "*color0:  #FF0d3c\n"
+    color_re = re.compile('.*?(color[^:]+|background|foreground):\s*(#[\da-z]{6})')
+
+    def __init__(self, data, config, logger):
+        self.data = data
+        self.config = config
+        self.logger = logger
+        self.colors = {}
+        self.wallpaper = None
+
+    def mapping(self):
+        return {
+            'background': 'background',
+            'foreground': 'foreground',
+            'color0': 'black',
+            'color8': 'alt_black',
+            'color1': 'red',
+            'color9': 'alt_red',
+            'color2': 'green',
+            'color10': 'alt_green',
+            'color3': 'yellow',
+            'color11': 'alt_yellow',
+            'color4': 'blue',
+            'color12': 'alt_blue',
+            'color5': 'magenta',
+            'color13': 'alt_magenta',
+            'color6': 'cyan',
+            'color14': 'alt_cyan',
+            'color7': 'white',
+            'color15': 'alt_white',
+            'colorul': 'underline'}
+
+    def read(self):
+        color_mapping = self.mapping()
+
+        with open(self.data) as fh:
+            for line in fh.readlines():
+                if line.startswith('!'):
+                    continue
+                match_obj = self.color_re.search(line.lower())
+                if match_obj:
+                    var, color = match_obj.groups()
+                    self.colors[color_mapping[var]] = color
+
+        if len(self.colors) < 16:
+            logger.warning(
+                'Error, only {} colors were read when loading color file "{}"'
+                .format(len(self.colors), self.color_file))
+        return self.colors
+
+class CachedColorParser(ColorParser):
+    def read(self):
+        with open(self.data) as fh:
+            self.colors = yaml.load(fh)
+        return self.colors
+
+class SweylaColorParser(ColorParser):
+    def mapping(self):
+        return {
+            'bg': ['background', 'black', 'alt_black'],
+            'fg': ['foreground', 'white'],
+            'nf': 'red',  # name of function / method
+            'nd': 'alt_red',  # decorator
+            'nc': 'green',  # name of class
+            'nt': 'alt_green', # ???
+            'nb': 'yellow',  # e.g., "object" or "open"
+            'c': 'alt_yellow',  # comments
+            's': 'blue',  # string
+            'mi': 'alt_blue',  # e.g., a number
+            'k': 'magenta',  # e.g., "class"
+            'o': 'alt_magenta', # operator, e.g "="
+            'bp': 'cyan',  # e.g., "self" keyword
+            'si': 'alt_cyan', # e.g. "%d"
+            'se': 'alt_white',
+            'support_function': 'underline'}
+
+    def read(self):
+        mapping = self.mapping()
+        resp = urllib.request.urlopen(
+            'http://sweyla.com/themes/textfile/sweyla{}.txt'.format(
+                re.search("([0-9]+)",self.data).groups()[0]))
+        contents = resp.read().decode('utf-8')
+        for line in contents.splitlines():
+            key, value = line.split(':\t')
+            if key in mapping:
+                colors = mapping[key]
+                if not isinstance(colors, list):
+                    colors = [colors]
+                for color in colors:
+                    self.colors[color] = value
+        return self.colors
+
+# TODO: "lazy" loading somehow?
+import colorsys
+import itertools
+try:
+    import Image, ImageDraw
+except ImportError:
+    from PIL import Image, ImageDraw
+
+try:
+    import kmeans
+except ImportError:
+    global kmeans
+
+    class PyKmeans:
+        def ec_dist(self, a, b):
+            return math.sqrt(
+                sum((a[0][i] - b[0][i]) ** 2 for i in range(3)))
+
+        def c_center(self, points):
+            vals = [0.0 for i in range(3)]
+            plen = 0
+            for p in points:
+                plen += p[1]
+                for i in range(3):
+                    vals[i] += p[0][i] * p[1]
+            return ([(v/plen) for v in vals], 1)
+
+        def kmeans(self, points, k, min_diff=1):
+            print("""Falling back to python kmeans implementation.
+            Consider installing 'kmeans' from PyPI for much faster image sampling""")
+            clusters = [([p], p) for p in random.sample(points, k)]
+            while True:
+                plists = [[] for i in range(k)]
+                for p in points:
+                    smallest_distance = float('Inf')
+                    for i in range(k):
+                        distance = self.ec_dist(p, clusters[i][1])
+                        if distance < smallest_distance:
+                            smallest_distance = distance
+                            idx = i
+                    plists[idx].append(p)
+                diff = 0
+                for i in range(k):
+                    old = clusters[i]
+                    center = self.c_center(plists[i])
+                    new = (plists[i], center)
+                    clusters[i] = new
+                    diff = max(diff, self.ec_dist(old[1], new[1]))
+                logger.debug('Diff: {}'.format(diff))
+                if diff <= min_diff:
+                    break
+            return [map(int, c[1][0]) for c in clusters]
+
+    print("""Falling back to python kmeans implementation.
+Consider installing 'kmeans' from PyPI for much faster image sampling""")
+    kmeans = PyKmeans()
+
+class KmeansColorParser(ColorParser):
+    def __init__(self, wallpaper, config, logger, k=16, bg='#0e0e0e', fg='#ffffff'):
+        self.wallpaper = wallpaper
+        self.config = config
+        self.logger = logger
+        self.bg = bg
+        self.fg = fg
+        self.k = k
+
+    def _get_points_from_image(self, img):
+        points = []
+        w, h = img.size
+        for count, color in img.getcolors(w * h):
+            points.append((color, count))
+        return points
+
+    def rgb_to_hex(self, rgb):
+        return '#{}'.format(''.join(('%02x' % p for p in rgb)))
+
+    def hex_to_rgb(self, h):
+        h = h.lstrip('#')
+        return tuple(map(lambda n: int(n, 16), [h[i:i+2] for i in range(0, 6, 2)]))
+
+    def get_dominant_colors(self):
+        img = Image.open(self.wallpaper)
+        img.thumbnail((300, 300))  # Resize to speed up python loop.
+        width, height = img.size
+        points = self._get_points_from_image(img)
+        rgbs = kmeans.kmeans(points, self.k)
+        #rgbs = [map(int, c.center.coords) for c in clusters]
+        return [self.rgb_to_hex(rgb) for rgb in rgbs]
+
+    def normalize(self, hexv, minv=128, maxv=256):
+        r, g, b = self.hex_to_rgb(hexv)
+        h, s, v = colorsys.rgb_to_hsv(r / 256.0, g / 256.0, b / 256.0)
+        minv = minv / 256.0
+        maxv = maxv / 256.0
+        if v < minv:
+            v = minv
+        if v > maxv:
+            v = maxv
+        rgb = colorsys.hsv_to_rgb(h, s, v)
+        return self.rgb_to_hex(map(lambda i: i * 256, rgb))
+
+    def read(self):
+        colors = self.get_dominant_colors()
+        color_dict = {
+            'background': self.bg,
+            'foreground': self.fg}
+        for i, color in enumerate(itertools.cycle(colors)):
+            if i == 0:
+                color = self.normalize(color, minv=0, maxv=32)
+            elif i == 8:
+                color = self.normalize(color, minv=128, maxv=192)
+            elif i < 8:
+                color = self.normalize(color, minv=160, maxv=224)
+            else:
+                color = self.normalize(color, minv=200, maxv=256)
+            color_dict['color%d' % i] = color
+            if i == 15:
+                break
+        mapping = self.mapping()
+        translated = {}
+        for k, v in color_dict.items():
+            translated[mapping[k]] = v
+        self.logger.debug(translated)
+        return translated
