@@ -229,7 +229,7 @@ if __name__ == '__main__':
     elif action == 'list':
         themes = [
             t for t in os.listdir(THEMER_ROOT)
-            if t not in ('templates', 'current')]
+            if t not in ('templates', 'current', 'plugins', 'plugins')]
         print('\n'.join(sorted(themes)))
         sys.exit(0)
     elif action == 'current':
@@ -243,6 +243,8 @@ if __name__ == '__main__':
         sys.exit(0)
 
     theme_name = args[1]
+    if theme_name in ('current', 'templates', 'plugins'):
+        panic('"{}" is not a valid theme'.format(theme_name))
 
     # Add logging handlers.
     if options.verbose or options.debug:
@@ -254,7 +256,10 @@ if __name__ == '__main__':
     if action == 'activate':
         activate(theme_name)
     elif action == 'delete':
-        shutil.rmtree(os.path.join(THEMER_ROOT, theme_name))
+        path = os.path.join(THEMER_ROOT, theme_name)
+        if not os.path.isdir(path):
+            panic('"{}" is not an existing theme'.format(theme_name))
+        shutil.rmtree(path)
         logger.info('Removed {}'.format(theme_name))
     else:
         # Find the appropriate yaml config file and load it.
