@@ -243,7 +243,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     theme_name = args[1]
-    if theme_name in ('current', 'templates', 'plugins'):
+    if theme_name in ('current', 'templates', 'plugins') or (theme_name == 'all' and action != 'render'):
         panic('"{}" is not a valid theme'.format(theme_name))
 
     # Add logging handlers.
@@ -270,7 +270,7 @@ if __name__ == '__main__':
 
         if action == 'generate':
             if not len(args) == 3:
-                panic('Missing required color file')
+                panic('Missing required color source')
             else:
                 color_file = args[2]
             generate(color_file, config_file, template_dir, theme_name)
@@ -278,7 +278,12 @@ if __name__ == '__main__':
             if not len(args) == 2:
                 panic('Missing required argument "theme_name"')
             else:
-                render(config_file, template_dir, theme_name)
+                if theme_name == 'all':
+                    for theme in [ t for t in os.listdir(THEMER_ROOT)
+                            if t not in ('templates', 'current', 'plugins', 'plugins')]:
+                        render(config_file, template_dir, theme)
+                else:
+                    render(config_file, template_dir, theme_name)
 
-        if options.activate or input('Activate now? yN ') == 'y':
+        if theme_name != 'all' and (options.activate or input('Activate now? yN ') == 'y'):
             activate(theme_name)
