@@ -254,6 +254,9 @@ if __name__ == '__main__':
         logger.setLevel(logging.DEBUG)
 
     if action == 'activate':
+        path = os.path.join(THEMER_ROOT, theme_name)
+        if not os.path.isdir(path):
+            panic('"{}" is not an existing theme'.format(theme_name))
         activate(theme_name)
     elif action == 'delete':
         path = os.path.join(THEMER_ROOT, theme_name)
