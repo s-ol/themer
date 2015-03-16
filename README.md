@@ -78,6 +78,10 @@ use `themer render` to update your configuration:
 
     $ themer render sometheme
 
+You can also re-render all of your themes (for example if you changed a lot in your configuration) by supplying `all` instead of a theme's name:
+
+    $ themer render all
+
 ### Deleting Themes
 
 Deleting generated themes is possible using `themer delete`:

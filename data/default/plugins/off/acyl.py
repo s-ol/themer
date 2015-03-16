@@ -1,4 +1,5 @@
 from themer import ThemeActivator
+import re
 import os
 
 class ACYLActivator(ThemeActivator):
@@ -20,8 +21,7 @@ class ACYLActivator(ThemeActivator):
                     return match_obj.groups()[0]
         raise ValueError('Unable to determine icon color.')
 
-    def update_icons(self):
-
+    def activate(self):
         old_primary = self.extract_color_svg(self.primary_icon())
         old_secondary = self.extract_color_svg(self.secondary_icon())
         logger.debug('Old icon colors: {}, {}'.format(old_primary, old_secondary))
