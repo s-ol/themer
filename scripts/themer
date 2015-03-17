@@ -262,6 +262,15 @@ if __name__ == '__main__':
         path = os.path.join(THEMER_ROOT, theme_name)
         if not os.path.isdir(path):
             panic('"{}" is not an existing theme'.format(theme_name))
+
+        current = os.path.basename(os.path.realpath( os.path.join(THEMER_ROOT, 'current')))
+        if current == theme_name:
+            current = input('"{}" is the current theme. Enter a new theme to activate (or empty to exit): '.format(theme_name))
+            while not os.path.isdir(os.path.join(THEMER_ROOT, current)):
+                print('"{}" is not an existing theme'.format(current))
+                current = input('new theme (or empty to exit): ')
+            if current.strip() != "":
+                activate(current)
         shutil.rmtree(path)
         logger.info('Removed {}'.format(theme_name))
     else:
@@ -288,5 +297,5 @@ if __name__ == '__main__':
                 else:
                     render(config_file, template_dir, theme_name)
 
-        if theme_name != 'all' and (options.activate or input('Activate now? yN ') == 'y'):
+        if theme_name != 'all' and (options.activate or input('Activate now? yN ').lower() == 'y'):
             activate(theme_name)
