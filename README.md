@@ -61,6 +61,18 @@ You can list all generated themes with `themer list`:
     themeone
     themetwo
 
+### Viewing Installed Plugins
+
+    $ themer plugins
+    Enabled activators:
+      themer.activators.wallfix.WallfixActivator
+      themer.activators.i3.I3Activator
+    Enabled parsers:
+      themer.parsers.SweylaColorParser
+      themer.parsers.KmeansColorParser
+      themer.parsers.CachedColorParser
+      themer.ColorParser
+
 ### Activating Themes
 
 You can activate an existing theme with `themer activate`:

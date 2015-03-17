@@ -203,9 +203,21 @@ if __name__ == '__main__':
         panic(parser.get_usage())
 
     action = args[0]
-    if action not in ('list', 'activate', 'generate', 'render', 'current', 'delete'):
+    if action not in ('list', 'activate', 'generate', 'render', 'current', 'delete', 'plugins'):
         panic('Unknown action "{}"'.format(action))
 
+    if action == 'plugins':
+        template_dir = os.path.join(TEMPLATE_ROOT, options.template_dir)
+        config = os.path.join(template_dir, options.config_file)
+        if not os.path.exists(config):
+            panic('Unable to find config file: "{}"'.format(config))
+        config = read_config(config)
+
+        for kind in plugins:
+            print('Enabled {}:'.format(kind))
+            for name in config['plugins'][kind]:
+                print('\t{}'.format(name))
+        sys.exit(0)
     if action not in ('list', 'current') and len(args) == 1:
         panic('Missing required argument "theme_name"')
     elif action == 'list':
