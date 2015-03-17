@@ -61,6 +61,18 @@ You can list all generated themes with `themer list`:
     themeone
     themetwo
 
+### Viewing Installed Plugins
+
+    $ themer plugins
+    Enabled activators:
+      themer.activators.wallfix.WallfixActivator
+      themer.activators.i3.I3Activator
+    Enabled parsers:
+      themer.parsers.SweylaColorParser
+      themer.parsers.KmeansColorParser
+      themer.parsers.CachedColorParser
+      themer.ColorParser
+
 ### Activating Themes
 
 You can activate an existing theme with `themer activate`:
@@ -99,12 +111,15 @@ Screenshots
 Plugins
 -------
 
-Plugins can be installed into `~/.config/themer/plugins`. A plugin is a python module that sets a variable called `exports`.
+Plugins can be installed anywhere into your PYTHONPATH.
+They are loaded via their python module-an-classname string; e.g. `mymodule.activator.MyActivator`.
+Plugins are configured on a template-directory basis, in the `config.yaml` file (default `~/.config/themer/templates/i3/config.yaml`).
 
-`exports` is a dictionary that needs to have the two keys `activators` and `parsers`, both of which should resolve to a list. Activators should inherit from `themer.ThemeActivator`, Parsers should inherit from `themer.ColorParser`.
+There are two kinds of plugins: **Activators** and **Parsers**.
+Activators should inherit from `themer.ThemeActivator`, Parsers should inherit from `themer.ColorParser`.
 
 ### `ThemeActivator`s
-The list of activators is simply a list of those classes and will be merged into the "global" list of activators.
+Activators are run once every time a theme is activated. Use them to reload configuration files, set desktop wallpapers etc.
 
 Each Activator should implement the method `activate`.
 The constructor is passed the values for `theme_name`, `theme_dir` and `logger`.
@@ -118,17 +133,17 @@ All of these and `colors` can be accessed via the instance's properties.
     class I3Activator(ThemeActivator):
         def activate(self):
             os.system('i3-msg -q restart')
-    
-    exports = {
-        "activators":   [ I3Activator ],
-        "parsers":      []
-    }
 
 ### `ColorParser`s
-The "parsers" list should contain tuples of a `matcher` and the class/type; the matcher can be either a string, a compiled regex (`re`) or a function. If it is a string it will be used as a regex as well. Whenever the `matcher` matches (the function returns `True`) the `ColorParser` will be used.
+Parsers are used to generate colorschemes from files and strings.
 
 Each ColorParser should implement the method `read`, which should return the color dictionary generated from the input string in `self.data` (or obtained via the constructor's first argument).
 A ColorParser can additionally return a path to a wallpaper to be used by setting `self.wallpaper` to anything other than `None`.
+
+Additionally, Parsers need to have a `check` attribute. It is used to determine whether a Parser should be used for a given color source. `check` can either be a function, in which case it is passed the color-source string and expected to return a truthy value if it wants to handle that color source, or a string.
+If it is a string it will be used as a regex and matched against the color source string.
+
+The `themer.check_file_regex` helper can be used to build a `check` function that checks filenames against a regex and verifies their existence on the filesystem.
 
 The constructor is passed the values for `data`, `config` and `logger`.
 All of these can be accessed via the instance's properties.
@@ -136,18 +151,14 @@ The default constructor also sets `self.colors` to a new dictionary and `self.wa
 
 #### Example:
 
-    from themer import ColorParser
+    from themer import ColorParser, check_file_regex
 
     class NewColorParser(ColorParser):
+        check = check_file_regex('\.yaml$')
         def read(self):
             with open(self.data) as fh: # load colors from a yaml file
                 self.colors = yaml.load(fh)
             return self.colors
-
-    exports = {
-        "activators": [],
-        "parsers":    [ ("\.yaml$", NewColorParser) ]
-    }
 
 Credits
 -------

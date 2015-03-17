@@ -41,8 +41,3 @@ class ACYLActivator(ThemeActivator):
                     fh.write(contents)
                     file_count += 1
         logger.info('Checked {} icon files'.format(file_count))
-
-exports = {
-    "activators":   [ ACYLActivator ],
-    "parsers":      []
-}

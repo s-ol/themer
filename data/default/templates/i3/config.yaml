@@ -7,6 +7,16 @@ variables:
   fontName: terminus
   fontSize: 10
   font: "-*-terminus-*-*-*-*-12-*-*-*-*-*-*-*"
+plugins:
+  parsers:
+    - themer.parsers.SweylaColorParser
+    - themer.parsers.KmeansColorParser
+    - themer.parsers.CachedColorParser
+    - themer.ColorParser
+  activators:
+    - themer.activators.wallfix.WallfixActivator
+    - themer.activators.i3.I3Activator
+  # - themer.activators.acyl.ACYLActivator
 files:
   Xdefaults.tpl: Xdefaults
   index.tpl: index.html
