@@ -2,6 +2,9 @@ import os.path
 import re
 
 def check_file_regex(regex):
+    """Builds a function that checks wheter a filename matches 'regex' and corresponds to an existing file.
+
+    For use as a ColorParser's 'check' attribute."""
     return lambda src: re.search(regex, src, re.IGNORECASE) and os.path.isfile(src)
 
 class ThemeActivator(object):

@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
 """
-Theme generator/manager.
+Themer is a colorscheme generator and manager for your desktop.
 
-Can generate themes from:
-
-- Xresources-style color files
-- Sweyla's site, e.g. for http://sweyla.com/themes/seed/693812/ -> 693812
-- Images, in which case it will use k-means to get colors
+Themer supports colorscheme generation from numerous sources and can be extended via python modules.
+See README.md for more information.
 """
 
 import logging
