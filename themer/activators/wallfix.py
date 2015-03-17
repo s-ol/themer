@@ -5,9 +5,6 @@ try:
 except ImportError:
     from PIL import Image, ImageDraw
 
-# self.theme_dir = os.path.join(THEMER_ROOT, theme_name)
-# self.colors = CachedColorParser(os.path.join(self.theme_dir,'colors.yaml')).read()
-
 class WallfixActivator(ThemeActivator):
     def hex_to_rgb(self, h):
         h = h.lstrip('#')
@@ -49,8 +46,3 @@ class WallfixActivator(ThemeActivator):
         self.logger.info('Setting {} as wallpaper'.format(wallpaper))
         path = os.path.join(self.theme_dir, wallpaper)
         os.system('wallfix {}'.format(path)) # TODO: integrate wallfix here directly
-
-exports = {
-    "activators":   [ WallfixActivator ],
-    "parsers":      []
-}

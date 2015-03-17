@@ -16,11 +16,8 @@ import os
 import random
 import re
 import shutil
-import imp
 import sys
 import yaml
-
-from themer import ColorParser, CachedColorParser, SweylaColorParser, KmeansColorParser
 
 from jinja2 import Environment, FileSystemLoader
 try:
@@ -40,7 +37,6 @@ DEFAULT_CONTEXT_CONFIG = {
 CONFIG_DIR = os.getenv('XDG_CONFIG_HOME', os.path.join(os.getenv('HOME'), '.config'))
 THEMER_ROOT = os.path.join(CONFIG_DIR, 'themer')
 TEMPLATE_ROOT = os.path.join(THEMER_ROOT, 'templates')
-PLUGIN_DIR = os.path.join(THEMER_ROOT, 'plugins')
 
 if not os.path.isdir(THEMER_ROOT):
     os.system("cp -r /usr/share/themer/default {}".format(THEMER_ROOT))
@@ -129,22 +125,23 @@ def activate(theme_name):
         act = activator(theme_name, theme_dir, logger)
         act.activate()
 
-def generate(color_source, config_file, template_dir, theme_name):
+def generate(color_source, config, template_dir, theme_name):
     """Generate a new theme."""
     destination = os.path.join(THEMER_ROOT, theme_name)
-    config = read_config(config_file)
     wallpaper = None
 
-    for (check, parser) in plugins['parsers']:
-        if hasattr(check, '__call__') and not check():
+    for parser in plugins['parsers']:
+        if hasattr(parser.check, '__call__') and not parser.check(color_source):
             continue
-        if (isinstance(check, str) or isinstance(check, re._pattern_type)) and not re.search(check, color_source, re.IGNORECASE):
+        if (isinstance(parser.check, str) or isinstance(parser.check, re._pattern_type)) and not re.search(parser.check, color_source, re.IGNORECASE):
             continue
         parse = parser(color_source, config, logger)
         colors = parse.read()
         wallpaper = parse.wallpaper
         logger.debug('Using {} (from {}) to parse {}'.format(parser.__name__, parser.__module__, color_source))
         break
+    else:
+        panic('No Parser found to parse {} with'.format(color_source))
 
     context = munge_context(config['variables'], colors)
     files = {
@@ -162,10 +159,9 @@ def generate(color_source, config_file, template_dir, theme_name):
     with open(os.path.join(destination, 'colors.yaml'), 'w') as fh:
         yaml.dump(context, fh, default_flow_style=False)
 
-def render(config_file, template_dir, theme_name):
+def render(config, template_dir, theme_name):
     """Render an existing theme."""
     src = os.path.join(THEMER_ROOT, theme_name)
-    config = read_config(config_file)
     files = {
         key: os.path.join(src, value)
         for key, value in config['files'].items()}
@@ -177,26 +173,17 @@ def render(config_file, template_dir, theme_name):
         context = yaml.load(fh)
         render_templates(template_dir, files, context)
 
-def load_plugins():
-    found = os.listdir(PLUGIN_DIR)
-    for name in found:
-        if not name.endswith('.py'):
-            continue
-        name = name[:-3]
-        mod = imp.load_module(name, *imp.find_module(name, [PLUGIN_DIR]))
-        if not mod.exports:
-            continue
+def load_plugins(config):
+    def imp(name):
+        mod = __import__('.'.join(name.split('.')[:-1]))
+        for n in name.split('.')[1:]:
+            mod = getattr(mod, n)
+        return mod
 
-        if 'activators' in mod.exports:
-            plugins['activators'] += mod.exports['activators']
-        if 'parsers' in mod.exports:
-            plugins['parsers'] += mod.exports['parsers']
-        logger.info('Loaded plugin "{}"'.format(name))
-
-    plugins['parsers'].append(('(sweyla)?[0-9]+', SweylaColorParser))
-    plugins['parsers'].append(('\.(jpg|png|jpeg)$', KmeansColorParser))
-    plugins['parsers'].append(('(.*)', ColorParser))
-    plugins['parsers'].append(('^colors\.yaml$', CachedColorParser))
+    for kind in plugins:
+        for name in config['plugins'][kind]:
+            plugins[kind].append(imp(name))
+            logger.info('Loaded plugin "{}"'.format(name))
 
 def get_parser():
     parser = optparse.OptionParser(usage='usage: %prog [options] [list|activate|render|generate|current|delete] theme_name [color file]')
@@ -221,8 +208,6 @@ if __name__ == '__main__':
     action = args[0]
     if action not in ('list', 'activate', 'generate', 'render', 'current', 'delete'):
         panic('Unknown action "{}"'.format(action))
-
-    load_plugins()
 
     if action not in ('list', 'current') and len(args) == 1:
         panic('Missing required argument "theme_name"')
@@ -253,6 +238,14 @@ if __name__ == '__main__':
     if options.debug:
         logger.setLevel(logging.DEBUG)
 
+    # Find the appropriate yaml config file and load it.
+    template_dir = os.path.join(TEMPLATE_ROOT, options.template_dir)
+    config = os.path.join(template_dir, options.config_file)
+    if not os.path.exists(config):
+        panic('Unable to find config file: "{}"'.format(config))
+    config = read_config(config)
+    load_plugins(config)
+
     if action == 'activate':
         path = os.path.join(THEMER_ROOT, theme_name)
         if not os.path.isdir(path):
@@ -274,18 +267,12 @@ if __name__ == '__main__':
         shutil.rmtree(path)
         logger.info('Removed {}'.format(theme_name))
     else:
-        # Find the appropriate yaml config file and load it.
-        template_dir = os.path.join(TEMPLATE_ROOT, options.template_dir)
-        config_file = os.path.join(template_dir, options.config_file)
-        if not os.path.exists(config_file):
-            panic('Unable to find file "{}"'.format(config_file))
-
         if action == 'generate':
             if not len(args) == 3:
                 panic('Missing required color source')
             else:
                 color_file = args[2]
-            generate(color_file, config_file, template_dir, theme_name)
+            generate(color_file, config, template_dir, theme_name)
         elif action == 'render':
             if not len(args) == 2:
                 panic('Missing required argument "theme_name"')
@@ -293,9 +280,9 @@ if __name__ == '__main__':
                 if theme_name == 'all':
                     for theme in [ t for t in os.listdir(THEMER_ROOT)
                             if t not in ('templates', 'current', 'plugins', 'plugins')]:
-                        render(config_file, template_dir, theme)
+                        render(config, template_dir, theme)
                 else:
-                    render(config_file, template_dir, theme_name)
+                    render(config, template_dir, theme_name)
 
         if theme_name != 'all' and (options.activate or input('Activate now? yN ').lower() == 'y'):
             activate(theme_name)
