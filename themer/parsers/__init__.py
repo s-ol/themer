@@ -100,7 +100,6 @@ except ImportError:
                     new = (plists[i], center)
                     clusters[i] = new
                     diff = max(diff, self.ec_dist(old[1], new[1]))
-                # logger.debug('Diff: {}'.format(diff)) FIXME: requires import of debug package
                 if diff <= min_diff:
                     break
             return [map(int, c[1][0]) for c in clusters]
@@ -176,5 +175,4 @@ class KmeansColorParser(ColorParser):
         translated = {}
         for k, v in color_dict.items():
             translated[mapping[k]] = v
-        #self.logger.debug(translated) FIXME: requires import of debug package
         return translated
