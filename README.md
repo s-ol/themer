@@ -29,7 +29,7 @@ Configuration
 -------------
 
 You can create multiple template dirs for `themer` in `~/.config/themer/templates`.
-The default template is `i3`; see [config/default](config/default) for the default configuration.
+The default template is `i3`; see [data/default](data/default) for the default configuration.
 
 
 Usage
