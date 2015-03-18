@@ -33,7 +33,7 @@ def make_wallpapers(original):
         # resize to match height, then crop horizontally from center
         new_width = int(HEIGHT * ratio)
         im.thumbnail((new_width, HEIGHT), Image.ANTIALIAS)
-        offset = (new_width - WIDTH) / 2
+        offset = int((new_width - WIDTH) / 2)
         cropped = im.crop((offset, 0, offset + WIDTH, HEIGHT))
     elif ratio < RATIO:
         # resize to match width, then crop vertically from center
