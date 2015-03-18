@@ -107,6 +107,8 @@ Screenshots
 ![](http://media.charlesleifer.com/blog/photos/bloom.png)
 ![](http://media.charlesleifer.com/blog/photos/waves.png)
 ![](http://media.charlesleifer.com/blog/photos/waves2.png)
+![](http://i.imgur.com/7GISqHw.png)
+![](http://i.imgur.com/cutS0S7.png)
 
 Plugins
 -------
