@@ -104,8 +104,6 @@ except ImportError:
                     break
             return [map(int, c[1][0]) for c in clusters]
 
-    print("""Falling back to python kmeans implementation.
-Consider installing 'kmeans' from PyPI for much faster image sampling""")
     kmeans = PyKmeans()
 
 class KmeansColorParser(ColorParser):
