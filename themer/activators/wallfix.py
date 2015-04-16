@@ -50,29 +50,28 @@ class WallfixActivator(ThemeActivator):
         image.save(os.path.join(self.theme_dir, filename), 'PNG')
         return image
 
-    def crop_wallpaper(im):
-        width, height = im.size
+    def crop_wallpaper(self, image):
+        width, height = image.size
         ratio = float(width) / height
 
         if ratio > RATIO:
             # resize to match height, then crop horizontally from center
             new_width = int(HEIGHT * ratio)
-            im.thumbnail((new_width, HEIGHT), Image.ANTIALIAS)
+            image.thumbnail((new_width, HEIGHT), Image.ANTIALIAS)
             offset = int((new_width - WIDTH) / 2)
-            cropped = im.crop((offset, 0, offset + WIDTH, HEIGHT))
+            cropped = image.crop((offset, 0, offset + WIDTH, HEIGHT))
         elif ratio < RATIO:
             # resize to match width, then crop vertically from center
             new_height = int(WIDTH / ratio)
-            im.thumbnail((WIDTH, new_height), Image.ANTIALIAS)
+            image.thumbnail((WIDTH, new_height), Image.ANTIALIAS)
             offset = int((new_height - HEIGHT) / 2)
-            cropped = im.crop((0, offset, WIDTH, offset + HEIGHT))
+            cropped = image.crop((0, offset, WIDTH, offset + HEIGHT))
         else:
-            im.thumbnail((WIDTH, HEIGHT), Image.ANTIALIAS)
-            cropped = im
+            image.thumbnail((WIDTH, HEIGHT), Image.ANTIALIAS)
+            cropped = image
 
-        path, ext = os.path.splitext(original)
-        dest_jpg = local_file('.wallpaper.jpg')
-        dest_png = local_file('.wallpaper.png')
+        dest_jpg = os.path.join(HOME, '.wallpaper.jpg')
+        dest_png = os.path.join(HOME, '.wallpaper.png')
 
         cropped.save(dest_jpg, 'JPEG', quality=100)
         cropped.save(dest_png, 'PNG')

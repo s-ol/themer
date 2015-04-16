@@ -3,7 +3,7 @@ from themer import ColorParser, check_file_regex
 import re
 import math
 import yaml
-import urllib.request
+import requests #urllib.request
 import random
 
 class CachedColorParser(ColorParser):
@@ -38,10 +38,10 @@ class SweylaColorParser(ColorParser):
 
     def read(self):
         mapping = self.mapping()
-        resp = urllib.request.urlopen(
+        resp = requests.get(
             'http://sweyla.com/themes/textfile/sweyla{}.txt'.format(
                 re.search("([0-9]+)",self.data).groups()[0]))
-        contents = resp.read().decode('utf-8')
+        contents = resp.text
         for line in contents.splitlines():
             key, value = line.split(':\t')
             if key in mapping:
