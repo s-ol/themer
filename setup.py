@@ -5,12 +5,21 @@ import os
 import sys
 
 from setuptools import setup, find_packages
+from setuptools.command.install import install
 
 here = os.path.abspath(os.path.dirname(__file__))
 try:
     README = open(os.path.join(here, 'README.md'), 'rb').read().decode('utf-8')
 except IOError:
     README = ''
+
+class new_install(install):
+    def run(self):
+        install.run(self) # invoke original install
+        self.mkpath('/usr/share/themer')
+        self.copy_tree('data/default', '/usr/share/themer/default')
+        self.mkpath('/usr/share/fish/completions')
+        self.copy_file('data/fish/themer.fish', '/usr/share/fish/completions/')
 
 setup(
     name='Themer',
@@ -29,5 +38,6 @@ setup(
     packages=find_packages(exclude=('tests', 'tests.*')),
     include_package_data=True,
     install_requires=['pyyaml','jinja2','pillow'],
-    install_recommends=['kmeans']
+    install_recommends=['kmeans'],
+    cmdclass=dict(install=new_install)
 )
