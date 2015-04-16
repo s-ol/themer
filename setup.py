@@ -35,6 +35,5 @@ setup(
     packages=find_packages(exclude=('tests', 'tests.*')),
     include_package_data=True,
     install_requires=['pyyaml','jinja2','pillow'],
-    install_recommends=['kmeans'],
     cmdclass=dict(install=new_install)
 )
