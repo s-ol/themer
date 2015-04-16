@@ -29,10 +29,7 @@ setup(
     author='Charles Leifer, Sol Bekic',
     author_email='s0lll0s@blinkenshell.org',
     url='https://github.com/S0lll0s/themer',
-    scripts=[
-        'scripts/themer',
-        'scripts/wallfix'
-    ],
+    scripts=['scripts/themer'],
     license='MIT',
     keywords='wm colorscheme color theme wallpaper',
     packages=find_packages(exclude=('tests', 'tests.*')),

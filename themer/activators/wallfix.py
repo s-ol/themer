@@ -5,12 +5,29 @@ try:
 except ImportError:
     from PIL import Image, ImageDraw
 
+HOME = os.environ['HOME']
+
+try:
+    import re
+    screen_info = os.popen('xrandr').readlines()
+    resolution_re = re.compile('\s+(\d+)x(\d+)\s+\d+\.\d+\*')
+    for line in screen_info:
+        match_obj = resolution_re.search(line)
+        if match_obj:
+            WIDTH, HEIGHT = map(int, match_obj.groups())
+            break
+except:
+    WIDTH = 1440
+    HEIGHT = 900
+RATIO = float(WIDTH) / HEIGHT
+
+
 class WallfixActivator(ThemeActivator):
     def hex_to_rgb(self, h):
         h = h.lstrip('#')
         return tuple(map(lambda n: int(n, 16), [h[i:i+2] for i in range(0, 6, 2)]))
 
-    def create_wallpaper(self, w=1920, h=1200, filename='wallpaper.png'):
+    def new_wallpaper(self, w=1920, h=1200, filename='wallpaper.png'):
         rectangles = (
             # x1, y1, x2, y2 -- in percents
             ('red', [0, 30.0, 3.125, 72.5]), # LEFT
@@ -31,18 +48,44 @@ class WallfixActivator(ThemeActivator):
             x1, y1, x2, y2 = fix_coords(coords)
             draw.rectangle([(x1, y1), (x2, y2)], fill=self.hex_to_rgb(self.colors[color]))
         image.save(os.path.join(self.theme_dir, filename), 'PNG')
-        return filename
+        return image
+
+    def crop_wallpaper(im):
+        width, height = im.size
+        ratio = float(width) / height
+
+        if ratio > RATIO:
+            # resize to match height, then crop horizontally from center
+            new_width = int(HEIGHT * ratio)
+            im.thumbnail((new_width, HEIGHT), Image.ANTIALIAS)
+            offset = int((new_width - WIDTH) / 2)
+            cropped = im.crop((offset, 0, offset + WIDTH, HEIGHT))
+        elif ratio < RATIO:
+            # resize to match width, then crop vertically from center
+            new_height = int(WIDTH / ratio)
+            im.thumbnail((WIDTH, new_height), Image.ANTIALIAS)
+            offset = int((new_height - HEIGHT) / 2)
+            cropped = im.crop((0, offset, WIDTH, offset + HEIGHT))
+        else:
+            im.thumbnail((WIDTH, HEIGHT), Image.ANTIALIAS)
+            cropped = im
+
+        path, ext = os.path.splitext(original)
+        dest_jpg = local_file('.wallpaper.jpg')
+        dest_png = local_file('.wallpaper.png')
+
+        cropped.save(dest_jpg, 'JPEG', quality=100)
+        cropped.save(dest_png, 'PNG')
 
     def activate(self):
         wallpaper = None
         for filename in os.listdir(self.theme_dir):
             if filename.startswith('wallpaper'):
-                wallpaper = filename
+                wallpaper = Image.open(os.path.join(self.theme_dir, filename))
                 break
         if not wallpaper:
             self.logger.info('No wallpaper found in {}, generating new one.'.format(self.theme_dir))
-            wallpaper = self.create_wallpaper()
+            wallpaper = self.new_wallpaper()
 
-        self.logger.info('Setting {} as wallpaper'.format(wallpaper))
-        path = os.path.join(self.theme_dir, wallpaper)
-        os.system('wallfix {}'.format(path)) # TODO: integrate wallfix here directly
+        self.logger.info('Setting new wallpaper')
+        self.crop_wallpaper(wallpaper)
