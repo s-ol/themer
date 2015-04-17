@@ -34,6 +34,6 @@ setup(
     keywords='wm colorscheme color theme wallpaper',
     packages=find_packages(exclude=('tests', 'tests.*')),
     include_package_data=True,
-    install_requires=['pyyaml','jinja2','pillow'],
+    install_requires=['pyyaml','jinja2','pillow', 'requests'],
     cmdclass=dict(install=new_install)
 )
