@@ -32,7 +32,7 @@ end
 
 function __fish_themer_themes
   for theme in ~/.config/themer/*
-    if [ -d $theme ]
+    if [ -d $theme -a ! -L $theme ]
       set theme (basename $theme)
       if not contains $theme templates plugins
         echo (basename $theme)
