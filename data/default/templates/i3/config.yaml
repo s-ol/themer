@@ -13,6 +13,7 @@ plugins:
     - themer.parsers.KmeansColorParser
     - themer.parsers.CachedColorParser
     - themer.ColorParser
+    # - themer.parsers.vim.VimColorParser
   activators:
     - themer.activators.wallfix.WallfixActivator
     - themer.activators.i3.I3Activator

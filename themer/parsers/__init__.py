@@ -1,5 +1,4 @@
 from themer import ColorParser, check_file_regex
-from . import vimColors
 
 import re
 import math
@@ -14,67 +13,6 @@ class CachedColorParser(ColorParser):
         with open(self.data) as fh:
             self.colors = yaml.load(fh)
         return self.colors
-
-class VimColorParser(ColorParser):
-    check = check_file_regex('\.vim$')
-    vimColorsMapping = vimColors.vimColorsMapping
-
-    vimGroups = ['Normal', 'Visual', 'VertSplit', 'Identifier', 'Statement', 'PreProc', 'Type', 'Function', 'String', 'Conditional', 'Repeat', 'Label', 'Operator', 'Keyword', 'Exception', 'Character', 'Number', 'Boolean', 'Float', 'Comment', 'Special', 'Error', 'Todo']
-    vimGroups.reverse()
-    mapping = {
-        'bg': ['background', 'black', 'alt_black'],
-        'fg': ['foreground', 'white'],
-        'rest': ['red', 'alt_red', 'green', 'alt_green', 'yellow', 'alt_yellow', 'blue', 'alt_blue', 'magenta', 'alt_magenta', 'cyan', 'alt_cyan', 'alt_white']
-        }
-
-    def mapVimColorNames(self, name):
-      #TODO handle unknown names
-      for o in self.vimColorsMapping:
-        if o['name'] == name:
-          return o['hex']
-
-    def read(self):
-      normalBg, normalFg = '', ''
-      self.colors = []
-      output = {}
-      groupRegex = re.compile(r'hi\s(\w*)\s')
-      guibgRegex = re.compile(r'guibg\=(\S*)\s')
-      guifgRegex = re.compile(r'guifg\=(\S*)\s')
-      with open(self.data) as fh:
-          for line in fh:
-              guifg = guifgRegex.findall(line)
-              guibg = guibgRegex.findall(line)
-              group = groupRegex.findall(line)
-              if(group and (guifg or guibg)):
-                  currentLine = {
-                          "group": group[0] if group else ''
-                          , "fg": guifg[0] if guifg else ''
-                          , "bg": guibg[0] if guibg else ''
-                          }
-                  # normalize each line
-                  currentLine.update((x, y.strip().lower()) for x, y in currentLine.items())
-                  # store the basic colors ('normal' colors) without any special hi gourps
-                  if(currentLine["group"] == "normal"):
-                      normalFg = currentLine["fg"]; 
-                      normalBg = currentLine["bg"];
-                  self.colors.append(currentLine)
-          # convert vim color name to hex
-          for entry in self.colors:
-            if(entry['fg'].find('#')):
-              entry['fg'] = self.mapVimColorNames(entry['fg'])
-            if(entry['bg'].find('#')):
-              entry['bg'] = self.mapVimColorNames(entry['bg'])
-
-          # walk through self colors, check for vim groups of interest - use those for fg,bg, pop through the rest
-          for fgtype in self.mapping['fg']:
-            output.update({fgtype: normalFg})
-          for bgtype in self.mapping['bg']:
-            output.update({bgtype: normalBg})
-          for el in self.colors:
-            for group in self.vimGroups:
-              if(len(self.mapping['rest'])>0 and el['group']==group.lower()):
-                output.update({self.mapping['rest'].pop(): el['fg']})
-          return output
 
 class SweylaColorParser(ColorParser):
     check = '(sweyla)?[0-9]+'
