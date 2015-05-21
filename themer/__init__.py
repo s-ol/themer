@@ -70,4 +70,4 @@ class ColorParser(object):
             self.logger.warning(
                 'Error, only {} colors were read when loading color file'
                 .format(len(self.colors)))
-            return self.colors
+        return self.colors
