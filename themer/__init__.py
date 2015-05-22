@@ -67,7 +67,7 @@ class ColorParser(object):
                     self.colors[color_mapping[var]] = color
 
         if len(self.colors) < 16:
-            logger.warning(
-                'Error, only {} colors were read when loading color file "{}"'
-                .format(len(self.colors), self.color_file))
+            self.logger.warning(
+                'Error, only {} colors were read when loading color file'
+                .format(len(self.colors)))
         return self.colors

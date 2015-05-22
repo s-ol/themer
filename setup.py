@@ -16,10 +16,10 @@ except IOError:
 class new_install(install):
     def run(self):
         install.run(self) # invoke original install
-        self.mkpath('usr/share/themer')
-        self.copy_tree('data/default', 'usr/share/themer/default')
-        self.mkpath('usr/share/fish/completions')
-        self.copy_file('data/fish/themer.fish', 'usr/share/fish/completions/')
+        self.mkpath('/usr/share/themer')
+        self.copy_tree('data/default', '/usr/share/themer/default')
+        self.mkpath('/usr/share/fish/completions')
+        self.copy_file('data/fish/themer.fish', '/usr/share/fish/completions/')
 
 setup(
     name='Themer',
