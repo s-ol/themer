@@ -15,15 +15,18 @@ except IOError:
 
 class new_install(install):
     def run(self):
+        print( self.root )
         install.run(self) # invoke original install
-        self.mkpath('/usr/share/themer')
-        self.copy_tree('data/default', '/usr/share/themer/default')
-        self.mkpath('/usr/share/fish/completions')
-        self.copy_file('data/fish/themer.fish', '/usr/share/fish/completions/')
+
+        root = self.root or '/'
+        self.mkpath(os.path.join(root, 'usr/share/themer'))
+        self.mkpath(os.path.join(root, 'usr/share/fish/completions'))
+        self.copy_tree('data/default', os.path.join(root, 'usr/share/themer/default'))
+        self.copy_file('data/fish/themer.fish', os.path.join(root, 'usr/share/fish/completions/'))
 
 setup(
     name='Themer',
-    version='1.2',
+    version='1.3',
     description='Themer is a colorscheme generator and manager for your desktop.',
     long_description=README,
     author='Charles Leifer, Sol Bekic',
