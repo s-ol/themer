@@ -3,6 +3,7 @@ Themer
 
 *Themer is a colorscheme generator and manager for your desktop.*
 
+
 Installation
 ------------
 
@@ -11,6 +12,14 @@ Installation
 Install [python-themer-git](https://aur.archlinux.org/packages/python-themer-git/) with the AUR manager of your choice:
 
     $ yaourt -S python-themer-git
+
+
+### PyPi
+
+`themer` is now available in the PyPi repository aswell. You can use a tool like `pip` to install it:
+
+    $ pip install themer
+
 
 ### Manual Installation
 
@@ -23,7 +32,6 @@ Install with `python setup.py install`
     $ cd themer
     $ sudo python setup.py install
 
-Ihis package might also end up in PyPI in the future.
 
 Configuration
 -------------
@@ -34,6 +42,21 @@ The default template is `i3`; see [data/default](data/default) for the default c
 
 Usage
 -----
+
+### Integrating Themer with your Setup
+
+All the following steps will show you how to use `themer` to generate themes,
+but you also need to configure your DE to used the generate theme.
+
+`themer` does not assume anything about the tools you use in your DE, you need to tell your DE about `themer`.
+The current theme will always be available in `$XDG_HOME/themer/current` (usually `.config/themer/current`).
+To use `themer`, symlink the seperate files from there to their destination.
+
+For example, this is how to set up `i3` with `themer`:
+
+    $ mkdir -p .config
+    $ ln -s ~/.config/themer .config/i3
+
 
 ### Generating Themes
 
@@ -53,6 +76,7 @@ you can also use an Xresources-style file:
 
 [Plugins](#plugins) enable you to generate themes from other sources as well, see below.
 
+
 ### Viewing Installed Themes
 
 You can list all generated themes with `themer list`:
@@ -60,6 +84,7 @@ You can list all generated themes with `themer list`:
     $ themer list
     themeone
     themetwo
+
 
 ### Viewing Installed Plugins
 
@@ -72,6 +97,7 @@ You can list all generated themes with `themer list`:
       themer.parsers.KmeansColorParser
       themer.parsers.CachedColorParser
       themer.ColorParser
+
 
 ### Activating Themes
 
@@ -94,11 +120,13 @@ You can also re-render all of your themes (for example if you changed a lot in y
 
     $ themer render all
 
+
 ### Deleting Themes
 
 Deleting generated themes is possible using `themer delete`:
 
     $ themer delete sometheme
+
 
 Screenshots
 -----------
@@ -110,6 +138,7 @@ Screenshots
 ![](http://i.imgur.com/7GISqHw.png)
 ![](http://i.imgur.com/cutS0S7.png)
 
+
 Plugins
 -------
 
@@ -120,12 +149,14 @@ Plugins are configured on a template-directory basis, in the `config.yaml` file 
 There are two kinds of plugins: **Activators** and **Parsers**.
 Activators should inherit from `themer.ThemeActivator`, Parsers should inherit from `themer.ColorParser`.
 
+
 ### `ThemeActivator`s
 Activators are run once every time a theme is activated. Use them to reload configuration files, set desktop wallpapers etc.
 
 Each Activator should implement the method `activate`.
 The constructor is passed the values for `theme_name`, `theme_dir` and `logger`.
 All of these and `colors` can be accessed via the instance's properties.
+
 
 #### Example:
 
@@ -135,6 +166,7 @@ All of these and `colors` can be accessed via the instance's properties.
     class I3Activator(ThemeActivator):
         def activate(self):
             os.system('i3-msg -q restart')
+
 
 ### `ColorParser`s
 Parsers are used to generate colorschemes from files and strings.
@@ -151,6 +183,7 @@ The constructor is passed the values for `data`, `config` and `logger`.
 All of these can be accessed via the instance's properties.
 The default constructor also sets `self.colors` to a new dictionary and `self.wallpaper` to `None`.
 
+
 #### Example:
 
     from themer import ColorParser, check_file_regex
@@ -161,6 +194,7 @@ The default constructor also sets `self.colors` to a new dictionary and `self.wa
             with open(self.data) as fh: # load colors from a yaml file
                 self.colors = yaml.load(fh)
             return self.colors
+
 
 Credits
 -------
