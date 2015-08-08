@@ -54,8 +54,8 @@ To use `themer`, symlink the seperate files from there to their destination.
 
 For example, this is how to set up `i3` with `themer`:
 
-    $ mkdir -p .config
-    $ ln -s ~/.config/themer .config/i3
+    $ mkdir -p .i3
+    $ ln -s ~/.config/themer/current/i3.conf .i3/config
 
 
 ### Generating Themes
@@ -131,6 +131,8 @@ Deleting generated themes is possible using `themer delete`:
 Screenshots
 -----------
 
+![](http://i.imgur.com/dXpXxPz.png)
+![](http://i.imgur.com/axUuxbF.png)
 ![](http://media.charlesleifer.com/blog/photos/candybean.png)
 ![](http://media.charlesleifer.com/blog/photos/bloom.png)
 ![](http://media.charlesleifer.com/blog/photos/waves.png)
