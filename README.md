@@ -142,7 +142,7 @@ Screenshots
 Plugins
 -------
 
-Plugins can be installed anywhere into your PYTHONPATH.
+Plugins can be installed anywhere into your PYTHONPATH, but the `plugins` directory under the used template dir is automatically added to `sys.path`, so you may want to place them there (usually this is `~/.config/themer/templates/i3/plugins`).
 They are loaded via their python module-an-classname string; e.g. `mymodule.activator.MyActivator`.
 Plugins are configured on a template-directory basis, in the `config.yaml` file (default `~/.config/themer/templates/i3/config.yaml`).
 

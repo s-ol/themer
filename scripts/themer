@@ -83,6 +83,7 @@ def render_templates(template_dir, files, context):
             template = env.get_template(src)
             with open(dest, 'wb') as fh:
                 fh.write(template.render(**context).encode('utf-8'))
+            shutil.copymode(os.path.join(template_dir, src), dest) # copy permissions
         else:
             logger.info('Copying {} -> {}'.format(src, dest))
             if src.lower().endswith(('.jpg', '.png', '.jpeg')):
@@ -90,6 +91,7 @@ def render_templates(template_dir, files, context):
             else:
                 src = os.path.join(template_dir, src)
             shutil.copy(src, dest)
+            shutil.copymode(src, dest) # copy permissions
 
 def munge_context(variables, colors):
     context = {}
@@ -259,6 +261,7 @@ if __name__ == '__main__':
     config = os.path.join(template_dir, options.config_file)
     if not os.path.exists(config):
         panic('Unable to find config file: "{}"'.format(config))
+    sys.path.append(os.path.join(template_dir, "plugins"))
     config = read_config(config)
     load_plugins(config)
 

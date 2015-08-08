@@ -26,7 +26,7 @@ class new_install(install):
 
 setup(
     name='Themer',
-    version='1.3',
+    version='1.5',
     description='Themer is a colorscheme generator and manager for your desktop.',
     long_description=README,
     author='Charles Leifer, Sol Bekic',
