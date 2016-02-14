@@ -16,7 +16,7 @@ Install [python-themer-git](https://aur.archlinux.org/packages/python-themer-git
 
 ### PyPi
 
-`themer` is now available in the PyPi repository aswell. You can use a tool like `pip` to install it:
+`themer` is now available in the PyPi repository as well. You can use a tool like `pip` to install it:
 
     $ pip install themer
 
