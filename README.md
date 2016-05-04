@@ -16,7 +16,7 @@ Install [python-themer-git](https://aur.archlinux.org/packages/python-themer-git
 
 ### PyPi
 
-`themer` is now available in the PyPi repository aswell. You can use a tool like `pip` to install it:
+`themer` is now available in the PyPi repository as well. You can use a tool like `pip` to install it:
 
     $ pip install themer
 
@@ -46,7 +46,7 @@ Usage
 ### Integrating Themer with your Setup
 
 All the following steps will show you how to use `themer` to generate themes,
-but you also need to configure your DE to used the generate theme.
+but you also need to configure your DE to use the generated theme.
 
 `themer` does not assume anything about the tools you use in your DE, you need to tell your DE about `themer`.
 The current theme will always be available in `$XDG_HOME/themer/current` (usually `.config/themer/current`).

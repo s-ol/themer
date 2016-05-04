@@ -10,6 +10,7 @@ variables:
 plugins:
   parsers:
     - themer.parsers.SweylaColorParser
+    - themer.parsers.WallhavenColorParser
     - themer.parsers.KmeansColorParser
     - themer.parsers.CachedColorParser
   # - themer.parsers.vim.VimColorParser

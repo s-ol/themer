@@ -1,10 +1,12 @@
 from themer import ColorParser, check_file_regex
 
+import os
 import re
 import math
 import yaml
 import requests #urllib.request
 import random
+from tempfile import mkstemp
 
 class CachedColorParser(ColorParser):
     check = check_file_regex('^colors\.yaml$')
@@ -125,7 +127,7 @@ class KmeansColorParser(ColorParser):
         return points
 
     def rgb_to_hex(self, rgb):
-        return '#{}'.format(''.join(('%02x' % p for p in rgb)))
+        return '#{}'.format(''.join(('%02x' % int(p) for p in rgb)))
 
     def hex_to_rgb(self, h):
         h = h.lstrip('#')
@@ -174,3 +176,27 @@ class KmeansColorParser(ColorParser):
         for k, v in color_dict.items():
             translated[mapping[k]] = v
         return translated
+
+class WallhavenColorParser(KmeansColorParser):
+    check = 'wallhaven.cc/wallpaper/[0-9]+'
+
+    def __init__(self, wallpaper, config, logger, k=16, bg='#0e0e0e', fg='#ffffff'):
+        wallid = re.search("([0-9]+)", wallpaper).groups()[0]
+        suffix = '.jpg'
+        res = requests.get('http://wallpapers.wallhaven.cc/wallpapers/full/wallhaven-{}.jpg'.format(wallid), stream=True)
+
+        if not res.ok:
+            res = requests.get('http://wallpapers.wallhaven.cc/wallpapers/full/wallhaven-{}.png'.format(wallid), stream=True)
+            suffix = '.png'
+
+        (dest, path) = mkstemp(suffix=suffix)
+
+        for block in res.iter_content(1024):
+            os.write(dest, block)
+        os.close(dest)
+
+        super(WallhavenColorParser, self).__init__(path, config, logger, k, bg, fg)
+
+    def read(self, *args):
+        res = super(WallhavenColorParser, self).read(*args)
+        return res
