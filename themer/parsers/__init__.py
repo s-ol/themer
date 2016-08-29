@@ -17,7 +17,7 @@ class CachedColorParser(ColorParser):
         return self.colors
 
 class SweylaColorParser(ColorParser):
-    check = '(sweyla)?[0-9]+'
+    check = '^(sweyla)?[0-9]+$'
 
     def mapping(self):
         return {
@@ -178,7 +178,7 @@ class KmeansColorParser(ColorParser):
         return translated
 
 class WallhavenColorParser(KmeansColorParser):
-    check = 'wallhaven.cc/wallpaper/[0-9]+'
+    check = 'wallhaven.cc/wallpaper/[0-9]+$'
 
     def __init__(self, wallpaper, config, logger, k=16, bg='#0e0e0e', fg='#ffffff'):
         wallid = re.search("([0-9]+)", wallpaper).groups()[0]
