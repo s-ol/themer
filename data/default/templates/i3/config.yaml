@@ -13,6 +13,7 @@ plugins:
     - themer.parsers.WallhavenColorParser
     - themer.parsers.KmeansColorParser
     - themer.parsers.CachedColorParser
+    - themer.parsers.unsplash.UnsplashColorParser
   # - themer.parsers.vim.VimColorParser
     - themer.ColorParser
   activators:
