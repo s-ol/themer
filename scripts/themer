@@ -144,6 +144,8 @@ def generate(color_source, config, template_dir, theme_name):
         parse = parser(color_source, config, logger)
         colors = parse.read()
         wallpaper = parse.wallpaper
+        if not wallpaper:
+            continue
         logger.debug('Using {} (from {}) to parse {}'.format(parser.__name__, parser.__module__, color_source))
         break
     else:
