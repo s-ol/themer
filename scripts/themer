@@ -83,10 +83,14 @@ def get_filters():
     def blue(color):
         return get_component(color, 2)
 
+    def to_float(num):
+        return num / 255
+
     return {
         'red': red,
         'green': green,
-        'blue': blue
+        'blue': blue,
+        'float': to_float
     }
 
 def render_templates(template_dir, files, context):
