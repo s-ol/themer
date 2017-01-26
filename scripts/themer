@@ -7,7 +7,7 @@ Themer supports colorscheme generation from numerous sources and can be extended
 See README.md for more information.
 """
 
-from __future__ import print_function, unicode_literals
+from __future__ import print_function, unicode_literals, division
 
 import logging
 import optparse
