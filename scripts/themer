@@ -7,7 +7,7 @@ Themer supports colorscheme generation from numerous sources and can be extended
 See README.md for more information.
 """
 
-from __future__ import print_function, unicode_literals
+from __future__ import print_function, unicode_literals, division
 
 import logging
 import optparse
@@ -69,9 +69,34 @@ def read_config(config_file):
 
     return dict_update(base_config, data)
 
+def get_filters():
+    def get_component(color, index):
+        index = 1 + 2 * index
+        return int(color[index:index+2], 16)
+
+    def red(color):
+        return get_component(color, 0)
+
+    def green(color):
+        return get_component(color, 1)
+
+    def blue(color):
+        return get_component(color, 2)
+
+    def to_float(num):
+        return num / 255
+
+    return {
+        'red': red,
+        'green': green,
+        'blue': blue,
+        'float': to_float
+    }
+
 def render_templates(template_dir, files, context):
     """Render templates from `template_dir`."""
     env = Environment(loader=FileSystemLoader(template_dir))
+    env.filters = get_filters()
     logger.debug('Jinja environment configured for: {}'.format(template_dir))
     for src, dest in files.items():
         dir_name = os.path.dirname(dest)
