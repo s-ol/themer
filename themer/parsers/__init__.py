@@ -188,9 +188,9 @@ class KmeansColorParser(ColorParser):
             'background': self.fg,
             'foreground': self.bg}
         for i, color in enumerate(itertools.cycle(colors)):
-            if i == 0:
+            if i == 15:
                 color = self.normalize(color, minv=0, maxv=32)
-            elif i == 8:
+            elif i == 7:
                 color = self.normalize(color, minv=128, maxv=192)
             elif i > 8:
                 color = self.normalize(color, minv=160, maxv=224)
