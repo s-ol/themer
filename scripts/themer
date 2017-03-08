@@ -156,7 +156,7 @@ def activate(theme_name):
         act = activator(theme_name, theme_dir, logger)
         act.activate()
 
-def generate(color_source, config, template_dir, theme_name):
+def generate(color_source, config, template_dir, theme_name, bright):
     """Generate a new theme."""
     destination = os.path.join(THEMER_ROOT, theme_name)
     wallpaper = None
@@ -166,7 +166,7 @@ def generate(color_source, config, template_dir, theme_name):
             continue
         if (isinstance(parser.check, str) or isinstance(parser.check, re._pattern_type)) and not re.search(parser.check, color_source, re.IGNORECASE):
             continue
-        parse = parser(color_source, config, logger)
+        parse = parser(color_source, config, logger, make_bright=bright)
         colors = parse.read()
         wallpaper = parse.wallpaper
         if not wallpaper:
@@ -225,6 +225,7 @@ def get_parser():
     parser.add_option('-a', '--activate', dest='activate', action='store_true')
     parser.add_option('-v', '--verbose', dest='verbose', action='store_true')
     parser.add_option('-d', '--debug', dest='debug', action='store_true')
+    parser.add_option('-b', '--bright', dest='bright', action='store_true')
     return parser
 
 def panic(msg):
@@ -318,7 +319,7 @@ if __name__ == '__main__':
                 panic('Missing required color source')
             else:
                 color_file = args[2]
-            generate(color_file, config, template_dir, theme_name)
+            generate(color_file, config, template_dir, theme_name, options.bright)
         elif action == 'render':
             if not len(args) == 2:
                 panic('Missing required argument "theme_name"')
