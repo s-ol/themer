@@ -193,9 +193,9 @@ class KmeansColorParser(ColorParser):
             elif i == 8:
                 color = self.normalize(color, minv=160, maxv=224)
             elif i > 8:
-                color = self.normalize(color, minv=128, maxv=192)
-            else:
                 color = self.normalize(color, minv=0, maxv=56)
+            else:
+                color = self.normalize(color, minv=128, maxv=192)
             color_dict['color%d' % i] = color
             if i == 15:
                 break
