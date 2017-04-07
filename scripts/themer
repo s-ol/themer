@@ -255,8 +255,6 @@ if __name__ == '__main__':
             for name in config['plugins'][kind]:
                 print('\t{}'.format(name))
         sys.exit(0)
-    if action not in ('list', 'current') and len(args) == 1:
-        panic('Missing required argument "theme_name"')
     elif action == 'list':
         themes = [
             t for t in os.listdir(THEMER_ROOT)
@@ -273,7 +271,10 @@ if __name__ == '__main__':
             os.system('colortheme')
         sys.exit(0)
 
+    if len(args) == 1:
+        panic('Missing required argument "theme_name"')
     theme_name = args[1]
+
     if theme_name in ('current', 'templates', 'plugins') or (theme_name == 'all' and action != 'render'):
         panic('"{}" is not a valid theme'.format(theme_name))
 
