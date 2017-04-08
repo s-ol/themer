@@ -56,13 +56,14 @@ In a running setup this directory will contain the following:
   look up and change variables used in the theme.)
 - `current`, a symbolic link to some of the themes.
 
-For most people it only holds 1 directory (called `i3` by default) for
-their setup.  If you like to switch your DE or the general appearance
-of your window manager you might want to add more of them. If you are
-only interested in small changes like colors and wallpapers (which
-don't change the structure of your configs, only the details) you are
-probably fine with one. (This is an abstraction layer which exists for
-historical reasons and might be removed in the future).
+For most people `templates` only holds 1 directory (called `i3` by
+default) for their setup.  If you like to switch your DE or the
+general appearance of your window manager you might want to add more
+of them. If you are only interested in small changes like colors and
+wallpapers (which don't change the structure of your configs, only the
+details) you are probably fine with one. (This is an abstraction layer
+which exists for historical reasons and might be removed in the
+future).
 
 ### the templates
 
