@@ -39,6 +39,48 @@ Configuration
 You can create multiple template dirs for `themer` in `~/.config/themer/templates`.
 The default template is `i3`; see [data/default](data/default) for the default configuration.
 
+Structure of Themer
+-------------------
+
+### The main directory
+
+Everything Themer does happens in `.config/themer/`.
+
+In a running setup this directory will contain the following:
+
+- `templates`, a directory holding the templates for your all your
+  themes. This is where new themes are generated from.
+- as many themes (which are directories) as you want. These hold the config files
+  that are specifically generated for this one theme. (They also
+  contain a file called `colors.yaml`, where you can look up variables
+  used in the theme.)
+- `current`, a symbolic link to some of the themes.
+
+So what is in `templates`? For most people it only holds 1 directory
+for their setup. If you like to switch your DE or the general
+appearance of your window manager you might want to add more of
+them. If you are only interested in small changes like colors and
+wallpapers (which don't change the structure of your configs, only the
+details) you are probably fine with one.
+
+### the templates
+
+So how does a template look like? A useful template contains:
+
+- One or more file-templates. They should (but don't have to) end with
+  `.tpl` and contain your config.
+- A (potentially empty) directory of plugins.
+- `config.yaml`, which tells themer how to use the other files.
+
+`config.yaml` has 3 sections:
+
+- `variables`, where `primary: red` means hat the files listed below
+  will be rendered with  `{{{ primary }}}` replaced by `red`
+- `plugins`, divided  in `parsers` and `activators`, each  with a list
+  of activated plugins.
+- `files`, where `fromfile: tofile` means that `fromfile` (which is
+  supposed to be the name of a file-template) is rendered to `tofile`
+  in the rendered theme.
 
 Usage
 -----
