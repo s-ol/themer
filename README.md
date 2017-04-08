@@ -49,33 +49,38 @@ Everything Themer does happens in `.config/themer/`.
 In a running setup this directory will contain the following:
 
 - `templates`, a directory holding the templates for your all your
-  themes. This is where new themes are generated from.
+  themes. This is where new themes are generated from. For most people
+  it only holds 1 directory (called `i3` by default) for their setup[^1].
 - as many themes (which are directories) as you want. These hold the
   config files that are specifically generated for this one
   theme. (They also contain a file called `colors.yaml`, where you can
   look up and change variables used in the theme.)
 - `current`, a symbolic link to some of the themes.
 
-So what is in `templates`? For most people it only holds 1 directory
-for their setup. If you like to switch your DE or the general
-appearance of your window manager you might want to add more of
-them. If you are only interested in small changes like colors and
-wallpapers (which don't change the structure of your configs, only the
-details) you are probably fine with one.
+[^1]: If you like to switch your DE or the general appearance of your
+      window manager you might want to add more of them. If you are
+      only interested in small changes like colors and wallpapers
+      (which don't change the structure of your configs, only the
+      details) you are probably fine with one. (This is an abstraction
+      layer which exists for historical reasons and might be removed
+      in the future).
 
 ### the templates
 
 So how does a template look like? A useful template contains:
 
 - One or more file-templates. They should (but don't have to) end with
-  `.tpl` and contain your config.
-- A (potentially empty) directory of plugins.
+  `.tpl` and contain your config. Variables should have the form `{{
+  variable_name }}` and will be replaced by their value when themer
+  renders them.
+- A (potentially empty) directory of plugins. If plugins are placed
+  here they can be activated by mentioning them in `config.yaml`
 - `config.yaml`, which tells themer how to use the other files.
 
 `config.yaml` has 3 sections:
 
 - `variables`, where `primary: red` means hat the files listed below
-  will be rendered with  `{{{ primary }}}` replaced by `red`
+  will be rendered with  `{{ primary }}` replaced by `red`
 - `plugins`, divided  in `parsers` and `activators`, each  with a list
   of activated plugins.
 - `files`, where `fromfile: tofile` means that `fromfile` (which is
