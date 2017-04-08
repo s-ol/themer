@@ -49,21 +49,20 @@ Everything Themer does happens in `.config/themer/`.
 In a running setup this directory will contain the following:
 
 - `templates`, a directory holding the templates for your all your
-  themes. This is where new themes are generated from. For most people
-  it only holds 1 directory (called `i3` by default) for their setup[^1].
+  themes. This is where new themes are generated from.
 - as many themes (which are directories) as you want. These hold the
   config files that are specifically generated for this one
   theme. (They also contain a file called `colors.yaml`, where you can
   look up and change variables used in the theme.)
 - `current`, a symbolic link to some of the themes.
 
-[^1]: If you like to switch your DE or the general appearance of your
-      window manager you might want to add more of them. If you are
-      only interested in small changes like colors and wallpapers
-      (which don't change the structure of your configs, only the
-      details) you are probably fine with one. (This is an abstraction
-      layer which exists for historical reasons and might be removed
-      in the future).
+For most people it only holds 1 directory (called `i3` by default) for
+their setup.  If you like to switch your DE or the general appearance
+of your window manager you might want to add more of them. If you are
+only interested in small changes like colors and wallpapers (which
+don't change the structure of your configs, only the details) you are
+probably fine with one. (This is an abstraction layer which exists for
+historical reasons and might be removed in the future).
 
 ### the templates
 
