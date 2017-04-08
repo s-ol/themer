@@ -50,10 +50,10 @@ In a running setup this directory will contain the following:
 
 - `templates`, a directory holding the templates for your all your
   themes. This is where new themes are generated from.
-- as many themes (which are directories) as you want. These hold the config files
-  that are specifically generated for this one theme. (They also
-  contain a file called `colors.yaml`, where you can look up variables
-  used in the theme.)
+- as many themes (which are directories) as you want. These hold the
+  config files that are specifically generated for this one
+  theme. (They also contain a file called `colors.yaml`, where you can
+  look up and change variables used in the theme.)
 - `current`, a symbolic link to some of the themes.
 
 So what is in `templates`? For most people it only holds 1 directory
@@ -87,12 +87,15 @@ Usage
 
 ### Integrating Themer with your Setup
 
-All the following steps will show you how to use `themer` to generate themes,
-but you also need to configure your DE to use the generated theme.
+All the following steps will show you how to use `themer` to generate
+themes, but you also need to configure your DE to use the generated
+theme.
 
-`themer` does not assume anything about the tools you use in your DE, you need to tell your DE about `themer`.
-The current theme will always be available in `$XDG_HOME/themer/current` (usually `.config/themer/current`).
-To use `themer`, symlink the seperate files from there to their destination.
+`themer` does not assume anything about the tools you use in your DE,
+you need to tell your DE about `themer`.  The current theme will
+always be available in `$XDG_HOME/themer/current` (usually
+`.config/themer/current`).  To use `themer`, symlink the seperate
+files from there to their destination.
 
 For example, this is how to set up `i3` with `themer`:
 
@@ -116,7 +119,8 @@ you can also use an Xresources-style file:
 
     $ themer generate themename /home/me/.Xresources
 
-[Plugins](#plugins) enable you to generate themes from other sources as well, see below.
+[Plugins](#plugins) enable you to generate themes from other sources
+as well, see below.
 
 
 ### Viewing Installed Themes
@@ -147,18 +151,23 @@ You can activate an existing theme with `themer activate`:
 
     $ themer activate sometheme
 
-This will symlink all defined templates to `~/.config/themer/current`. You should, in turn, symlink all the global configuration files to there. For example for i3:
+This will symlink all defined templates to
+`~/.config/themer/current`. You should, in turn, symlink all the
+global configuration files to there. For example for i3:
 
     $ ln -s ~/.config/themer/current/i3.conf ~/.i3/config
 
 To view the currently activated theme's colors use `themer current`.
 
-If you have modified the templates, activating the theme again will not apply those changes. Instead
-use `themer render` to update your configuration:
+If you have modified the templates or a themes `colors.yaml`,
+activating the theme again will not apply those changes. Instead use
+`themer render` to update your configuration:
 
     $ themer render sometheme
 
-You can also re-render all of your themes (for example if you changed a lot in your configuration) by supplying `all` instead of a theme's name:
+You can also re-render all of your themes (for example if you changed
+a lot in your configuration) by supplying `all` instead of a theme's
+name:
 
     $ themer render all
 
