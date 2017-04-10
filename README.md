@@ -44,16 +44,19 @@ Structure of Themer
 
 ### The main directory
 
-Everything Themer does happens in `.config/themer/`.
+Everything Themer does happens in `.config/themer/`. In short, things
+are created from `templates` and end up in `current`.
 
 In a running setup this directory will contain the following:
 
 - `templates`, a directory holding the templates for your all your
   themes. This is where new themes are generated from.
-- as many themes (which are directories) as you want. These hold the
-  config files that are specifically generated for this one
+- an arbitrary number of themes (which are directories). These hold
+  the config files that are specifically generated for this one
   theme. (They also contain a file called `colors.yaml`, where you can
-  look up and change variables used in the theme.)
+  look up and change variables used in the theme.) These themes are
+  for internal use mostly and while you _can_ create these themes by
+  hand, most of the time you won't.
 - `current`, a symbolic link to some of the themes.
 
 For most people `templates` only holds 1 directory (called `i3` by
