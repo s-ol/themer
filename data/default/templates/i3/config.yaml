@@ -24,3 +24,4 @@ files:
   Xdefaults.tpl: Xdefaults
   index.tpl: index.html
   i3.tpl: i3.conf
+# iterm2.tpl: iterm.itermcolors

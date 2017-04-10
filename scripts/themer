@@ -7,7 +7,7 @@ Themer supports colorscheme generation from numerous sources and can be extended
 See README.md for more information.
 """
 
-from __future__ import print_function, unicode_literals
+from __future__ import print_function, unicode_literals, division
 
 import logging
 import optparse
@@ -69,9 +69,34 @@ def read_config(config_file):
 
     return dict_update(base_config, data)
 
+def get_filters():
+    def get_component(color, index):
+        index = 1 + 2 * index
+        return int(color[index:index+2], 16)
+
+    def red(color):
+        return get_component(color, 0)
+
+    def green(color):
+        return get_component(color, 1)
+
+    def blue(color):
+        return get_component(color, 2)
+
+    def to_float(num):
+        return num / 255
+
+    return {
+        'red': red,
+        'green': green,
+        'blue': blue,
+        'float': to_float
+    }
+
 def render_templates(template_dir, files, context):
     """Render templates from `template_dir`."""
     env = Environment(loader=FileSystemLoader(template_dir))
+    env.filters = get_filters()
     logger.debug('Jinja environment configured for: {}'.format(template_dir))
     for src, dest in files.items():
         dir_name = os.path.dirname(dest)
@@ -131,7 +156,7 @@ def activate(theme_name):
         act = activator(theme_name, theme_dir, logger)
         act.activate()
 
-def generate(color_source, config, template_dir, theme_name):
+def generate(color_source, config, template_dir, theme_name, bright):
     """Generate a new theme."""
     destination = os.path.join(THEMER_ROOT, theme_name)
     wallpaper = None
@@ -141,7 +166,7 @@ def generate(color_source, config, template_dir, theme_name):
             continue
         if (isinstance(parser.check, str) or isinstance(parser.check, re._pattern_type)) and not re.search(parser.check, color_source, re.IGNORECASE):
             continue
-        parse = parser(color_source, config, logger)
+        parse = parser(color_source, config, logger, make_bright=bright)
         colors = parse.read()
         wallpaper = parse.wallpaper
         if not wallpaper:
@@ -200,6 +225,7 @@ def get_parser():
     parser.add_option('-a', '--activate', dest='activate', action='store_true')
     parser.add_option('-v', '--verbose', dest='verbose', action='store_true')
     parser.add_option('-d', '--debug', dest='debug', action='store_true')
+    parser.add_option('-b', '--bright', dest='bright', action='store_true')
     return parser
 
 def panic(msg):
@@ -229,8 +255,6 @@ if __name__ == '__main__':
             for name in config['plugins'][kind]:
                 print('\t{}'.format(name))
         sys.exit(0)
-    if action not in ('list', 'current') and len(args) == 1:
-        panic('Missing required argument "theme_name"')
     elif action == 'list':
         themes = [
             t for t in os.listdir(THEMER_ROOT)
@@ -247,7 +271,10 @@ if __name__ == '__main__':
             os.system('colortheme')
         sys.exit(0)
 
+    if len(args) == 1:
+        panic('Missing required argument "theme_name"')
     theme_name = args[1]
+
     if theme_name in ('current', 'templates', 'plugins') or (theme_name == 'all' and action != 'render'):
         panic('"{}" is not a valid theme'.format(theme_name))
 
@@ -293,7 +320,7 @@ if __name__ == '__main__':
                 panic('Missing required color source')
             else:
                 color_file = args[2]
-            generate(color_file, config, template_dir, theme_name)
+            generate(color_file, config, template_dir, theme_name, options.bright)
         elif action == 'render':
             if not len(args) == 2:
                 panic('Missing required argument "theme_name"')

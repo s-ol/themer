@@ -26,12 +26,12 @@ class new_install(install):
 
 setup(
     name='Themer',
-    version='1.7',
+    version='1.8',
     description='Themer is a colorscheme generator and manager for your desktop.',
     long_description=README,
     author='Charles Leifer, Sol Bekic',
     author_email='s0lll0s@blinkenshell.org',
-    url='https://github.com/S0lll0s/themer',
+    url='https://github.com/s-ol/themer',
     scripts=['scripts/themer'],
     license='MIT',
     keywords='wm colorscheme color theme wallpaper',

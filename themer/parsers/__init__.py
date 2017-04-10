@@ -111,13 +111,14 @@ except ImportError:
 class KmeansColorParser(ColorParser):
     check = check_file_regex('\.(jpg|png|jpeg)$')
 
-    def __init__(self, wallpaper, config, logger, k=16, bg='#0e0e0e', fg='#ffffff'):
+    def __init__(self, wallpaper, config, logger, k=16, bg='#0e0e0e', fg='#ffffff', make_bright=False):
         self.wallpaper = wallpaper
         self.config = config
         self.logger = logger
         self.bg = bg
         self.fg = fg
         self.k = k
+        self.make_bright = make_bright
 
     def _get_points_from_image(self, img):
         points = []
@@ -127,7 +128,7 @@ class KmeansColorParser(ColorParser):
         return points
 
     def rgb_to_hex(self, rgb):
-        return '#{}'.format(''.join(('%02x' % int(p) for p in rgb)))
+        return "#{0:X}{1:X}{2:X}".format(*rgb)
 
     def hex_to_rgb(self, h):
         h = h.lstrip('#')
@@ -156,6 +157,14 @@ class KmeansColorParser(ColorParser):
 
     def read(self):
         colors = self.get_dominant_colors()
+        color_dict = self.bright(colors) if self.make_bright else self.dark(colors)
+        mapping = self.mapping()
+        translated = {}
+        for k, v in color_dict.items():
+            translated[mapping[k]] = v
+        return translated
+
+    def dark(self, colors):
         color_dict = {
             'background': self.bg,
             'foreground': self.fg}
@@ -171,16 +180,31 @@ class KmeansColorParser(ColorParser):
             color_dict['color%d' % i] = color
             if i == 15:
                 break
-        mapping = self.mapping()
-        translated = {}
-        for k, v in color_dict.items():
-            translated[mapping[k]] = v
-        return translated
+        return color_dict
+
+    def bright(self, colors):
+        colors = colors[::-1]
+        color_dict = {
+            'background': self.fg,
+            'foreground': self.bg}
+        for i, color in enumerate(itertools.cycle(colors)):
+            if i == 0:
+                color = self.normalize(color, minv=224, maxv=256)
+            elif i == 8:
+                color = self.normalize(color, minv=160, maxv=224)
+            elif i < 8:
+                color = self.normalize(color, minv=128, maxv=192)
+            else:
+                color = self.normalize(color, minv=0, maxv=56)
+            color_dict['color%d' % i] = color
+            if i == 15:
+                break
+        return color_dict
 
 class WallhavenColorParser(KmeansColorParser):
     check = 'wallhaven.cc/wallpaper/[0-9]+$'
 
-    def __init__(self, wallpaper, config, logger, k=16, bg='#0e0e0e', fg='#ffffff'):
+    def __init__(self, wallpaper, config, logger, k=16, bg='#0e0e0e', fg='#ffffff', make_bright=False):
         wallid = re.search("([0-9]+)", wallpaper).groups()[0]
         suffix = '.jpg'
         res = requests.get('http://wallpapers.wallhaven.cc/wallpapers/full/wallhaven-{}.jpg'.format(wallid), stream=True)
@@ -195,7 +219,7 @@ class WallhavenColorParser(KmeansColorParser):
             os.write(dest, block)
         os.close(dest)
 
-        super(WallhavenColorParser, self).__init__(path, config, logger, k, bg, fg)
+        super(WallhavenColorParser, self).__init__(path, config, logger, k, bg, fg, make_bright)
 
     def read(self, *args):
         res = super(WallhavenColorParser, self).read(*args)
