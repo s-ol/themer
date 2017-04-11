@@ -16,6 +16,7 @@ plugins:
     - themer.parsers.unsplash.UnsplashColorParser
   # - themer.parsers.vim.VimColorParser
     - themer.ColorParser
+    # - themer.parsers.vim.VimColorParser
   activators:
     - themer.activators.wallfix.WallfixActivator
     - themer.activators.i3.I3Activator
