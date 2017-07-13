@@ -128,7 +128,7 @@ class KmeansColorParser(ColorParser):
         return points
 
     def rgb_to_hex(self, rgb):
-        return "#{0:X}{1:X}{2:X}".format(*rgb)
+        return "#{0:X}{1:X}{2:X}".format(*(int(i) for i in rgb))
 
     def hex_to_rgb(self, h):
         h = h.lstrip('#')
