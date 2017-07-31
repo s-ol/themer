@@ -128,7 +128,7 @@ class KmeansColorParser(ColorParser):
         return points
 
     def rgb_to_hex(self, rgb):
-        return "#{0:X}{1:X}{2:X}".format(*rgb)
+        return "#{:02X}{:02X}{:02X}".format(*rgb)
 
     def hex_to_rgb(self, h):
         h = h.lstrip('#')
@@ -153,7 +153,7 @@ class KmeansColorParser(ColorParser):
         if v > maxv:
             v = maxv
         rgb = colorsys.hsv_to_rgb(h, s, v)
-        return self.rgb_to_hex(map(lambda i: i * 256, rgb))
+        return self.rgb_to_hex(map(lambda i: int(i * 256), rgb))
 
     def read(self):
         colors = self.get_dominant_colors()
