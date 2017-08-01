@@ -25,7 +25,7 @@ class ColorParser(object):
     # Colors look something like "*color0:  #FF0d3c\n"
     color_re = re.compile('.*?(color[^:]+|background|foreground):\s*(#[\da-z]{6})')
 
-    def __init__(self, data, config, logger):
+    def __init__(self, data, config, logger, **kwargs):
         self.data = data
         self.config = config
         self.logger = logger

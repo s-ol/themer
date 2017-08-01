@@ -68,7 +68,7 @@ details) you are probably fine with one. (This is an abstraction layer
 which exists for historical reasons and might be removed in the
 future).
 
-### the templates
+### The templates
 
 So how does a template look like? A useful template contains:
 

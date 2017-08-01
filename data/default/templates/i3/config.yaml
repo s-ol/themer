@@ -20,6 +20,7 @@ plugins:
     - themer.activators.wallfix.WallfixActivator
     - themer.activators.i3.I3Activator
   # - themer.activators.acyl.ACYLActivator
+  # - themer.activators.termite.TermiteActivator
 files:
   Xdefaults.tpl: Xdefaults
   index.tpl: index.html
