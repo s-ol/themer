@@ -1,7 +1,7 @@
 Themer
 ======
 
-*Themer is a colorscheme generator and manager for your desktop.*
+*Themer is a colorscheme generator and manager for your Linux desktop.*
 
 
 Installation
@@ -11,8 +11,17 @@ Installation
 
 Install [python-themer-git](https://aur.archlinux.org/packages/python-themer-git/) with the AUR manager of your choice:
 
-    $ yaourt -S python-themer-git
+**Yaurt**
+```
+$ yaourt -S python-themer-git
+```
 
+**Manual AUR**
+```
+$ git clone https://aur.archlinux.org/packages/python-themer-git
+$ cd python-themer
+$ makepkg -sic
+```
 
 ### PyPi
 
