@@ -12,13 +12,13 @@ Installation
 Install [python-themer-git](https://aur.archlinux.org/packages/python-themer-git/) with the AUR manager of your choice,
 for example `trizen`:
 
-  $ trizen -S python-themer-git
+    $ trizen -S python-themer-git
 
 or perform a manual build if you prefer:
 
-  $ git clone https://aur.archlinux.org/packages/python-themer-git
-  $ cd python-themer
-  $ makepkg -sic
+    $ git clone https://aur.archlinux.org/packages/python-themer-git
+    $ cd python-themer
+    $ makepkg -sic
 
 ### PyPi
 
