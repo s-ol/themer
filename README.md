@@ -1,7 +1,7 @@
 Themer
 ======
 
-*Themer is a colorscheme generator and manager for your desktop.*
+*Themer is a colorscheme generator and manager for your Linux desktop.*
 
 
 Installation
@@ -9,23 +9,28 @@ Installation
 
 ### AUR (Arch)
 
-Install [python-themer-git](https://aur.archlinux.org/packages/python-themer-git/) with the AUR manager of your choice:
+Install [python-themer-git](https://aur.archlinux.org/packages/python-themer-git/) with the AUR manager of your choice,
+for example `trizen`:
 
-    $ yaourt -S python-themer-git
+  $ trizen -S python-themer-git
 
+or perform a manual build if you prefer:
+
+  $ git clone https://aur.archlinux.org/packages/python-themer-git
+  $ cd python-themer
+  $ makepkg -sic
 
 ### PyPi
 
-`themer` is now available in the PyPi repository as well. You can use a tool like `pip` to install it:
+`themer` is now available in the PyPi repository as well. You can use a `pip` to install it:
 
     $ pip install themer
-
 
 ### Manual Installation
 
 First, check out the git repository:
 
-    $ git clone https://github.com/S0lll0s/themer.git
+    $ git clone https://github.com/s-ol/themer.git
 
 Install with `python setup.py install`
 
@@ -261,4 +266,4 @@ Credits
 -------
 
 Original script by [Charles Leifer](https://github.com/coleifer)  
-Maintained and developed further by [Sol Bekic](https://github.com/S0lll0s)
+Maintained and developed further by [Sol Bekic](https://github.com/s-ol)
