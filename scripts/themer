@@ -164,7 +164,7 @@ def generate(color_source, config, template_dir, theme_name, bright):
     for parser in plugins['parsers']:
         if hasattr(parser.check, '__call__') and not parser.check(color_source):
             continue
-        if (isinstance(parser.check, str) or isinstance(parser.check, re._pattern_type)) and not re.search(parser.check, color_source, re.IGNORECASE):
+        if (isinstance(parser.check, str) or isinstance(parser.check, re.Pattern)) and not re.search(parser.check, color_source, re.IGNORECASE):
             continue
         parse = parser(color_source, config, logger, make_bright=bright)
         colors = parse.read()
