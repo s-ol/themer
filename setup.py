@@ -13,7 +13,7 @@ except IOError:
 
 setup(
     name='Themer',
-    version='1.8.3',
+    version='1.8.4',
     description='Themer is a colorscheme generator and manager for your desktop.',
     long_description=README,
     author='Charles Leifer, Sol Bekic',
