@@ -61,7 +61,7 @@ def read_config(config_file):
     config_dir = os.path.dirname(config_file)
     base_config = {}
     with open(config_file) as fh:
-        data = yaml.load(fh)
+        data = yaml.safe_load(fh)
 
     if data.get('extends'):
         parent_config = os.path.join(config_dir, data['extends'])
@@ -203,7 +203,7 @@ def render(config, template_dir, theme_name):
     if not os.path.isfile(colors):
         panic('Unkown theme "{}"'.format(theme_name))
     with open(colors, 'r') as fh:
-        context = yaml.load(fh)
+        context = yaml.safe_load(fh)
         render_templates(template_dir, files, context)
 
 def load_plugins(config):
