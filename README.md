@@ -75,7 +75,7 @@ future).
 
 ### The templates
 
-So how does a template look like? A useful template contains:
+So what does a template look like? A useful template contains:
 
 - One or more file-templates. They should (but don't have to) end with
   `.tpl` and contain your config. Variables should have the form `{{
@@ -123,7 +123,7 @@ Generate a theme from a wallpaper:
     $ themer generate themename wallpaper.png
 
 ...or install a colorscheme from `sweyla.com`:
- 
+
     $ themer generate themename 693812
 
 (this will install [http://sweyla.com/themes/seed/693812/](http://sweyla.com/themes/seed/693812/))
@@ -228,7 +228,7 @@ All of these and `colors` can be accessed via the instance's properties.
 
     from themer import ThemeActivator
     import os
-    
+
     class I3Activator(ThemeActivator):
         def activate(self):
             os.system('i3-msg -q restart')
