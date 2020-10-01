@@ -54,7 +54,7 @@ are created from `templates` and end up in `current`.
 
 In a running setup this directory will contain the following:
 
-- `templates`, a directory holding the templates for your all your
+- `templates`, a directory holding the templates for all your
   themes. This is where new themes are generated from.
 - an arbitrary number of themes (which are directories). These hold
   the config files that are specifically generated for this one
