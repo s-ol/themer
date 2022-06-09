@@ -13,7 +13,7 @@ class CachedColorParser(ColorParser):
 
     def read(self):
         with open(self.data) as fh:
-            self.colors = yaml.load(fh)
+            self.colors = yaml.safe_load(fh)
         return self.colors
 
 class SweylaColorParser(ColorParser):
